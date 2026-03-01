@@ -33,11 +33,11 @@ export default function ClubForm({ onCreate }) {
       </h2>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
         <input value={name} onChange={e => setName(e.target.value)} placeholder="Club name" className="glass-input" />
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+        <div className="grid-2col">
           <input value={category} onChange={e => setCategory(e.target.value)} placeholder="Category (e.g., Sports)" className="glass-input" />
           <input value={admin} onChange={e => setAdmin(e.target.value)} placeholder="Admin name" className="glass-input" />
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+        <div className="grid-2col">
           <input value={college} onChange={e => setCollege(e.target.value)} placeholder="🏫 College" className="glass-input" />
           <input type="number" value={members} onChange={e => setMembers(e.target.value)} min={0} placeholder="Members" className="glass-input" />
         </div>

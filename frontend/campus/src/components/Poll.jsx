@@ -17,7 +17,7 @@ export default function Poll({ poll, eventId, onVote }) {
   }
 
   return (
-    <div style={{ marginTop: '1rem', padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: 'var(--radius-md)', border: '1px solid rgba(255,255,255,0.05)' }}>
+    <div style={{ marginTop: '1rem', padding: '1rem', background: 'var(--glass-bg)', borderRadius: 'var(--radius-md)', border: '1px solid var(--glass-border)' }}>
       <h4 style={{ fontSize: '0.85rem', fontWeight: 600, margin: '0 0 0.75rem', color: 'var(--text-primary)' }}>🗳️ Will you attend?</h4>
       <form onSubmit={handleVote} style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
         {poll.options.map(opt => {
@@ -37,7 +37,7 @@ export default function Poll({ poll, eventId, onVote }) {
                 />
                 <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{opt}</span>
               </label>
-              <div style={{ width: 160 }}>
+              <div className="poll-bar-wrap">
                 <div className="progress-track">
                   <div className="progress-fill" style={{ width: `${pct}%` }} />
                 </div>

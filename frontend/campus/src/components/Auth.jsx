@@ -1,23 +1,28 @@
 import React, { useState } from 'react'
 import Login from './Login'
 import Signup from './Signup'
+import ThemeToggle from './ThemeToggle'
 
 const Auth = ({ onAuth }) => {
   const [tab, setTab] = useState('login')
 
   return (
     <div className="page-wrapper" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      {/* Theme toggle — top right */}
+      <div style={{ position: 'fixed', top: '1.5rem', right: '1.5rem', zIndex: 10 }}>
+        <ThemeToggle />
+      </div>
       {/* Decorative orbs */}
       <div style={{ position: 'fixed', top: '-10%', left: '20%', width: 400, height: 400, borderRadius: '50%', background: 'radial-gradient(circle,rgba(139,92,246,0.12),transparent 70%)', pointerEvents: 'none', animation: 'float 8s ease-in-out infinite' }} />
       <div style={{ position: 'fixed', bottom: '-5%', right: '15%', width: 300, height: 300, borderRadius: '50%', background: 'radial-gradient(circle,rgba(6,182,212,0.1),transparent 70%)', pointerEvents: 'none', animation: 'float 6s ease-in-out infinite 1s' }} />
 
-      <div style={{ width: '100%', maxWidth: 960, display: 'grid', gridTemplateColumns: '1fr', gap: 0, borderRadius: 'var(--radius-xl)', overflow: 'hidden', boxShadow: 'var(--shadow-card)', position: 'relative', zIndex: 1 }} className="animate-fade-in">
+      <div className="auth-container animate-fade-in">
 
         {/* Two-column layout on larger screens */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
+        <div className="grid-auth">
 
           {/* === LEFT — Hero Sidebar === */}
-          <aside style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '3rem', background: 'linear-gradient(135deg,#1e1b4b,#312e81,#1e293b)', position: 'relative', overflow: 'hidden' }}>
+          <aside className="auth-hero-sidebar" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '3rem', background: 'linear-gradient(135deg,#1e1b4b,#312e81,#1e293b)', position: 'relative', overflow: 'hidden' }}>
             {/* Gradient overlay */}
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,rgba(139,92,246,0.1),transparent 50%,rgba(6,182,212,0.08))', pointerEvents: 'none' }} />
 
@@ -34,7 +39,7 @@ const Auth = ({ onAuth }) => {
                   { icon: '🔗', title: 'Connections', desc: 'Find classmates nearby.' },
                 ].map((f, i) => (
                   <div key={i} className={`animate-fade-in animate-delay-${i + 1}`} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.875rem' }}>
-                    <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 40, height: 40, borderRadius: 'var(--radius-md)', background: 'rgba(255,255,255,0.08)', fontSize: '1.1rem', flexShrink: 0 }}>{f.icon}</span>
+                    <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 40, height: 40, borderRadius: 'var(--radius-md)', background: 'var(--glass-bg)', fontSize: '1.1rem', flexShrink: 0 }}>{f.icon}</span>
                     <div>
                       <div style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.9rem' }}>{f.title}</div>
                       <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: 2 }}>{f.desc}</div>

@@ -35,7 +35,7 @@ const Events = ({ onBack }) => {
 	return (
 		<div className="page-wrapper">
 			{/* Header */}
-			<header className="page-header" style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
+			<header className="page-header page-header-flex">
 				<div>
 					<button onClick={onBack} className="btn-ghost" style={{ marginBottom: '0.75rem', fontSize: '0.8rem' }}>← Back to Dashboard</button>
 					<h1 style={{ fontSize: '2rem', fontWeight: 800, margin: 0 }} className="gradient-text">Events</h1>
@@ -44,7 +44,7 @@ const Events = ({ onBack }) => {
 			</header>
 
 			<main style={{ position: 'relative', zIndex: 1 }}>
-				<div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1.5rem' }}>
+				<div className="grid-form-list">
 
 					{/* Left — Form + Tip */}
 					<div>
@@ -58,7 +58,7 @@ const Events = ({ onBack }) => {
 
 					{/* Right — Event List */}
 					<div>
-						<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+						<div className="search-filter-row">
 							<input
 								value={query}
 								onChange={e => setQuery(e.target.value)}

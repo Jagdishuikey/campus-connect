@@ -39,7 +39,7 @@ export default function EventForm({ onCreate }) {
         ✏️ Create Event
       </h2>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '0.75rem' }}>
+        <div className="grid-event-title">
           <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Event title" className="glass-input" />
           <input type="date" value={date} onChange={e => setDate(e.target.value)} className="glass-input" style={{ colorScheme: 'dark' }} />
         </div>

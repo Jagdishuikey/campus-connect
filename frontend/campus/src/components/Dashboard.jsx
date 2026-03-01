@@ -1,10 +1,12 @@
 import React from 'react'
 import Activity from './Activity'
+import ThemeToggle from './ThemeToggle'
 
 const features = [
   { icon: '📅', title: 'Events', desc: 'See upcoming campus events and RSVP.', page: 'events', gradient: 'linear-gradient(135deg,rgba(139,92,246,0.15),rgba(6,182,212,0.1))' },
   { icon: '👥', title: 'Groups', desc: 'Join clubs and student groups nearby.', page: 'groups', gradient: 'linear-gradient(135deg,rgba(249,115,22,0.15),rgba(236,72,153,0.1))' },
   { icon: '🔗', title: 'Connections', desc: 'Find classmates and form study groups.', page: 'connections', gradient: 'linear-gradient(135deg,rgba(52,211,153,0.15),rgba(6,182,212,0.1))' },
+  { icon: '🔍', title: 'Lost & Found', desc: 'Report lost items or help reunite found ones.', page: 'lostfound', gradient: 'linear-gradient(135deg,rgba(251,191,36,0.15),rgba(251,113,133,0.1))' },
 ]
 
 const FeatureCard = ({ f, onClick }) => (
@@ -34,28 +36,31 @@ const Dashboard = ({ user, onSignOut, onNavigate }) => {
   return (
     <div className="page-wrapper">
       {/* Header */}
-      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2.5rem', position: 'relative', zIndex: 1 }}>
+      <header className="dashboard-header">
         <div>
           <h1 style={{ fontSize: '2rem', fontWeight: 800, margin: 0 }} className="gradient-text">Campus Connect</h1>
           <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', margin: '0.3rem 0 0' }}>
             Welcome back{user?.name ? `, ${user.name}` : user?.email ? `, ${user.email}` : ''}! 👋
           </p>
         </div>
-        <button onClick={onSignOut} className="btn-ghost btn-danger">
-          Sign out
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <ThemeToggle />
+          <button onClick={onSignOut} className="btn-ghost btn-danger">
+            Sign out
+          </button>
+        </div>
       </header>
 
       <main style={{ position: 'relative', zIndex: 1 }}>
         {/* Feature Cards */}
-        <section style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1.25rem' }}>
+        <section className="grid-features">
           {features.map((f, i) => (
             <FeatureCard key={f.page} f={f} onClick={() => onNavigate && onNavigate(f.page)} />
           ))}
         </section>
 
         {/* Activity + Announcements */}
-        <section style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.25rem', marginTop: '2rem' }}>
+        <section className="grid-activity">
           <div>
             <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1rem', color: 'var(--text-primary)' }}>Recent activity</h2>
             <Activity />
@@ -70,7 +75,7 @@ const Dashboard = ({ user, onSignOut, onNavigate }) => {
                 'Library closed this Friday for maintenance.',
                 'Submit project proposals by next Monday.',
               ].map((a, i) => (
-                <li key={i} style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', padding: '0.75rem', background: 'rgba(255,255,255,0.03)', borderRadius: 'var(--radius-md)', border: '1px solid rgba(255,255,255,0.05)', lineHeight: 1.5 }}>
+                <li key={i} style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', padding: '0.75rem', background: 'var(--glass-bg)', borderRadius: 'var(--radius-md)', border: '1px solid var(--glass-border)', lineHeight: 1.5 }}>
                   {a}
                 </li>
               ))}
