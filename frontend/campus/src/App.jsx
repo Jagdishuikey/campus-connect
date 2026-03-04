@@ -8,6 +8,7 @@ import Events from './pages/Events'
 import Groups from './pages/Groups'
 import Connection from './pages/Connection'
 import LostFound from './pages/LostFound'
+import ProfilePage from './pages/ProfilePage'
 
 function App() {
   const [user, setUser] = useState(null)
@@ -18,7 +19,7 @@ function App() {
   useEffect(() => {
     const token = localStorage.getItem('token')
     const savedUser = localStorage.getItem('user')
-    
+
     if (token && savedUser) {
       try {
         setUser(JSON.parse(savedUser))
@@ -69,6 +70,7 @@ function App() {
       {page === 'groups' && <Groups onBack={() => setPage('dashboard')} />}
       {page === 'connections' && <Connection onBack={() => setPage('dashboard')} />}
       {page === 'lostfound' && <LostFound onBack={() => setPage('dashboard')} />}
+      {page === 'profile' && <ProfilePage user={user} onBack={() => setPage('dashboard')} onSignOut={signOut} />}
     </ThemeProvider>
   )
 }

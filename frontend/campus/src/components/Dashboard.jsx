@@ -45,8 +45,13 @@ const Dashboard = ({ user, onSignOut, onNavigate }) => {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <ThemeToggle />
-          <button onClick={onSignOut} className="btn-ghost btn-danger">
-            Sign out
+          <button
+            onClick={() => onNavigate && onNavigate('profile')}
+            className="avatar avatar-md"
+            style={{ cursor: 'pointer', border: '2px solid var(--glass-border)', transition: 'all 0.25s ease', fontSize: '0.85rem' }}
+            title="My Profile"
+          >
+            {user?.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : '👤'}
           </button>
         </div>
       </header>
