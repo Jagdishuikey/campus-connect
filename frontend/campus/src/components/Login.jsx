@@ -1,12 +1,34 @@
 import React, { useState } from 'react'
+import { authAPI } from '../services/api'
 
 const Login = ({ onAuth, switchToSignup }) => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
-  const submit = (e) => {
+  const submit = async (e) => {
     e.preventDefault()
-    onAuth && onAuth({ email })
+    setLoading(true)
+    setError('')
+
+    try {
+      const response = await authAPI.login(email, password)
+      
+      // Store token in localStorage
+      localStorage.setItem('token', response.token)
+      
+      // Store user data
+      localStorage.setItem('user', JSON.stringify(response.user))
+      
+      // Call parent handler with user data
+      onAuth && onAuth(response.user)
+    } catch (err) {
+      setError(err.message)
+      console.error('Login error:', err)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -21,6 +43,7 @@ const Login = ({ onAuth, switchToSignup }) => {
             required
             placeholder="you@university.edu"
             className="glass-input"
+            disabled={loading}
           />
         </div>
 
@@ -33,12 +56,38 @@ const Login = ({ onAuth, switchToSignup }) => {
             required
             placeholder="••••••••"
             className="glass-input"
+            disabled={loading}
           />
         </div>
 
+        {error && (
+          <div style={{ 
+            padding: '0.75rem', 
+            backgroundColor: 'rgba(239, 68, 68, 0.1)', 
+            borderRadius: 'var(--radius-md)',
+            border: '1px solid rgba(239, 68, 68, 0.3)',
+            color: '#ef4444',
+            fontSize: '0.85rem'
+          }}>
+            {error}
+          </div>
+        )}
+
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.25rem' }}>
-          <button type="submit" className="btn-gradient" style={{ flex: 1 }}>Sign in</button>
-          <button type="button" onClick={switchToSignup} style={{ background: 'none', border: 'none', fontSize: '0.8rem', color: 'var(--accent-violet)', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+          <button 
+            type="submit" 
+            className="btn-gradient" 
+            style={{ flex: 1 }}
+            disabled={loading}
+          >
+            {loading ? 'Signing in...' : 'Sign in'}
+          </button>
+          <button 
+            type="button" 
+            onClick={switchToSignup} 
+            style={{ background: 'none', border: 'none', fontSize: '0.8rem', color: 'var(--accent-violet)', cursor: 'pointer', whiteSpace: 'nowrap' }}
+            disabled={loading}
+          >
             Create account →
           </button>
         </div>

@@ -1,13 +1,35 @@
 import React, { useState } from 'react'
+import { authAPI } from '../services/api'
 
 const Signup = ({ onAuth, switchToLogin }) => {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
-  const submit = (e) => {
+  const submit = async (e) => {
     e.preventDefault()
-    onAuth && onAuth({ name, email })
+    setLoading(true)
+    setError('')
+
+    try {
+      const response = await authAPI.signup(name, email, password)
+      
+      // Store token in localStorage
+      localStorage.setItem('token', response.token)
+      
+      // Store user data
+      localStorage.setItem('user', JSON.stringify(response.user))
+      
+      // Call parent handler with user data
+      onAuth && onAuth(response.user)
+    } catch (err) {
+      setError(err.message)
+      console.error('Signup error:', err)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -22,6 +44,7 @@ const Signup = ({ onAuth, switchToLogin }) => {
             required
             placeholder="John Doe"
             className="glass-input"
+            disabled={loading}
           />
         </div>
 
@@ -34,6 +57,7 @@ const Signup = ({ onAuth, switchToLogin }) => {
             required
             placeholder="you@university.edu"
             className="glass-input"
+            disabled={loading}
           />
         </div>
 
@@ -46,12 +70,38 @@ const Signup = ({ onAuth, switchToLogin }) => {
             required
             placeholder="••••••••"
             className="glass-input"
+            disabled={loading}
           />
         </div>
 
+        {error && (
+          <div style={{ 
+            padding: '0.75rem', 
+            backgroundColor: 'rgba(239, 68, 68, 0.1)', 
+            borderRadius: 'var(--radius-md)',
+            border: '1px solid rgba(239, 68, 68, 0.3)',
+            color: '#ef4444',
+            fontSize: '0.85rem'
+          }}>
+            {error}
+          </div>
+        )}
+
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.25rem' }}>
-          <button type="submit" className="btn-gradient btn-gradient-green" style={{ flex: 1 }}>Create account</button>
-          <button type="button" onClick={switchToLogin} style={{ background: 'none', border: 'none', fontSize: '0.8rem', color: 'var(--accent-emerald)', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+          <button 
+            type="submit" 
+            className="btn-gradient btn-gradient-green" 
+            style={{ flex: 1 }}
+            disabled={loading}
+          >
+            {loading ? 'Creating account...' : 'Create account'}
+          </button>
+          <button 
+            type="button" 
+            onClick={switchToLogin} 
+            style={{ background: 'none', border: 'none', fontSize: '0.8rem', color: 'var(--accent-emerald)', cursor: 'pointer', whiteSpace: 'nowrap' }}
+            disabled={loading}
+          >
             Sign in →
           </button>
         </div>
