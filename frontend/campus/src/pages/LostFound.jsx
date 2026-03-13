@@ -1,73 +1,97 @@
 import React, { useEffect, useState } from 'react'
-
-const STORAGE_KEY = 'campus_lost_found'
+import { lostFoundAPI } from '../services/api'
 
 const CATEGORIES = [
-    { label: 'Electronics', icon: '📱', color: 'rgba(139,92,246,0.15)' },
-    { label: 'Books', icon: '📚', color: 'rgba(249,115,22,0.15)' },
-    { label: 'Clothing', icon: '👕', color: 'rgba(236,72,153,0.15)' },
-    { label: 'Keys', icon: '🔑', color: 'rgba(251,191,36,0.15)' },
-    { label: 'ID / Cards', icon: '🪪', color: 'rgba(52,211,153,0.15)' },
-    { label: 'Bags', icon: '🎒', color: 'rgba(6,182,212,0.15)' },
-    { label: 'Accessories', icon: '👓', color: 'rgba(168,85,247,0.15)' },
-    { label: 'Other', icon: '📦', color: 'rgba(100,116,139,0.15)' },
+    { label: 'Electronics', value: 'electronics', icon: '📱', color: 'rgba(139,92,246,0.15)' },
+    { label: 'Books', value: 'books', icon: '📚', color: 'rgba(249,115,22,0.15)' },
+    { label: 'Clothing', value: 'clothing', icon: '👕', color: 'rgba(236,72,153,0.15)' },
+    { label: 'Keys', value: 'keys', icon: '🔑', color: 'rgba(251,191,36,0.15)' },
+    { label: 'Documents', value: 'documents', icon: '🪪', color: 'rgba(52,211,153,0.15)' },
+    { label: 'Accessories', value: 'accessories', icon: '👓', color: 'rgba(168,85,247,0.15)' },
+    { label: 'Other', value: 'other', icon: '📦', color: 'rgba(100,116,139,0.15)' },
 ]
 
 const LostFound = ({ onBack }) => {
     const [items, setItems] = useState([])
     const [query, setQuery] = useState('')
     const [filterType, setFilterType] = useState('all') // all | lost | found
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState('')
 
     // Form state
     const [title, setTitle] = useState('')
     const [description, setDescription] = useState('')
-    const [category, setCategory] = useState('Electronics')
+    const [category, setCategory] = useState('electronics')
     const [location, setLocation] = useState('')
     const [contact, setContact] = useState('')
-    const [itemType, setItemType] = useState('lost') // lost | found-item
+    const [itemType, setItemType] = useState('lost') // lost | found
 
     useEffect(() => {
-        try {
-            const raw = localStorage.getItem(STORAGE_KEY)
-            setItems(raw ? JSON.parse(raw) : [])
-        } catch (e) { setItems([]) }
+        loadItems()
     }, [])
 
-    useEffect(() => {
-        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(items)) } catch (e) { }
-    }, [items])
+    async function loadItems() {
+        try {
+            setLoading(true)
+            const data = await lostFoundAPI.getAll()
+            setItems(data.items || [])
+        } catch (e) {
+            setError(e.message)
+            console.error('Load items error:', e)
+        } finally {
+            setLoading(false)
+        }
+    }
 
-    function addItem(e) {
+    async function addItem(e) {
         e.preventDefault()
         if (!title.trim()) return
-        const item = {
-            id: Date.now().toString(),
-            title: title.trim(),
-            description: description.trim(),
-            category,
-            location: location.trim(),
-            contact: contact.trim(),
-            type: itemType,
-            found: false,
-            createdAt: new Date().toISOString(),
+        try {
+            setError('')
+            const itemData = {
+                title: title.trim(),
+                description: description.trim(),
+                category,
+                location: location.trim(),
+                contactInfo: contact.trim(),
+                type: itemType,
+                date: new Date().toISOString(),
+            }
+            const data = await lostFoundAPI.create(itemData)
+            setItems(prev => [data.item, ...prev])
+            setTitle(''); setDescription(''); setLocation(''); setContact('')
+        } catch (e) {
+            setError(e.message)
         }
-        setItems(prev => [item, ...prev])
-        setTitle(''); setDescription(''); setLocation(''); setContact('')
     }
 
-    function toggleFound(id) {
-        setItems(prev => prev.map(item =>
-            item.id === id ? { ...item, found: !item.found } : item
-        ))
+    async function toggleFound(id) {
+        try {
+            setError('')
+            const item = items.find(i => i._id === id)
+            if (!item) return
+            const newStatus = item.status === 'resolved' ? 'open' : 'resolved'
+            const data = await lostFoundAPI.update(id, { status: newStatus })
+            setItems(prev => prev.map(i => i._id === id ? data.item : i))
+        } catch (e) {
+            setError(e.message)
+        }
     }
 
-    function deleteItem(id) {
-        setItems(prev => prev.filter(item => item.id !== id))
+    async function deleteItem(id) {
+        try {
+            setError('')
+            await lostFoundAPI.delete(id)
+            setItems(prev => prev.filter(item => item._id !== id))
+        } catch (e) {
+            setError(e.message)
+        }
     }
 
     const filtered = items.filter(item => {
-        if (filterType === 'lost' && (item.type !== 'lost' || item.found)) return false
-        if (filterType === 'found' && !item.found) return false
+        const isResolved = item.status === 'resolved'
+        if (filterType === 'lost' && (item.type !== 'lost' || isResolved)) return false
+        if (filterType === 'found' && !isResolved) return false
         if (!query.trim()) return true
         const q = query.toLowerCase()
         return (item.title || '').toLowerCase().includes(q)
@@ -75,9 +99,8 @@ const LostFound = ({ onBack }) => {
             || (item.description || '').toLowerCase().includes(q)
     })
 
-    const catObj = CATEGORIES.find(c => c.label === category) || CATEGORIES[0]
-    const lostCount = items.filter(i => !i.found).length
-    const foundCount = items.filter(i => i.found).length
+    const lostCount = items.filter(i => i.status !== 'resolved').length
+    const foundCount = items.filter(i => i.status === 'resolved').length
 
     return (
         <div className="page-wrapper">
@@ -101,6 +124,12 @@ const LostFound = ({ onBack }) => {
                 </div>
             </header>
 
+            {error && (
+                <div style={{ margin: '0 0 1rem', padding: '0.75rem 1rem', background: 'rgba(251,113,133,0.15)', borderRadius: 'var(--radius-md)', color: 'var(--accent-rose)', fontSize: '0.85rem' }}>
+                    ⚠️ {error}
+                </div>
+            )}
+
             <main style={{ position: 'relative', zIndex: 1 }}>
                 <div className="grid-form-list">
 
@@ -122,11 +151,11 @@ const LostFound = ({ onBack }) => {
                                         }}>
                                         🔴 I Lost
                                     </button>
-                                    <button type="button" onClick={() => setItemType('found-item')}
+                                    <button type="button" onClick={() => setItemType('found')}
                                         style={{
                                             padding: '0.4rem 1rem', borderRadius: 'var(--radius-full)', border: 'none', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.25s',
-                                            background: itemType === 'found-item' ? 'linear-gradient(135deg,#34d399,#06b6d4)' : 'transparent',
-                                            color: itemType === 'found-item' ? '#fff' : 'var(--text-muted)'
+                                            background: itemType === 'found' ? 'linear-gradient(135deg,#34d399,#06b6d4)' : 'transparent',
+                                            color: itemType === 'found' ? '#fff' : 'var(--text-muted)'
                                         }}>
                                         🟢 I Found
                                     </button>
@@ -139,15 +168,15 @@ const LostFound = ({ onBack }) => {
                                     <label className="form-label">Classification</label>
                                     <div className="grid-categories">
                                         {CATEGORIES.map(cat => (
-                                            <button key={cat.label} type="button" onClick={() => setCategory(cat.label)}
+                                            <button key={cat.value} type="button" onClick={() => setCategory(cat.value)}
                                                 style={{
                                                     padding: '0.5rem 0.25rem',
                                                     borderRadius: 'var(--radius-md)',
-                                                    border: category === cat.label ? '2px solid var(--accent-violet)' : '1px solid var(--glass-border)',
-                                                    background: category === cat.label ? cat.color : 'transparent',
+                                                    border: category === cat.value ? '2px solid var(--accent-violet)' : '1px solid var(--glass-border)',
+                                                    background: category === cat.value ? cat.color : 'transparent',
                                                     color: 'var(--text-secondary)',
                                                     fontSize: '0.7rem',
-                                                    fontWeight: category === cat.label ? 600 : 400,
+                                                    fontWeight: category === cat.value ? 600 : 400,
                                                     cursor: 'pointer',
                                                     transition: 'all 0.2s',
                                                     display: 'flex',
@@ -194,7 +223,12 @@ const LostFound = ({ onBack }) => {
 
                         {/* Items */}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
-                            {filtered.length === 0 && (
+                            {loading && (
+                                <div className="glass-card" style={{ padding: '2.5rem', textAlign: 'center' }}>
+                                    <p style={{ color: 'var(--text-muted)', margin: 0 }}>Loading items...</p>
+                                </div>
+                            )}
+                            {!loading && filtered.length === 0 && (
                                 <div className="glass-card" style={{ padding: '2.5rem', textAlign: 'center' }}>
                                     <span style={{ fontSize: '3rem', display: 'block', marginBottom: '0.75rem', animation: 'float 3s ease-in-out infinite' }}>🔍</span>
                                     <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 0.4rem' }}>No items posted yet</h3>
@@ -203,34 +237,35 @@ const LostFound = ({ onBack }) => {
                             )}
 
                             {filtered.map(item => {
-                                const cat = CATEGORIES.find(c => c.label === item.category) || CATEGORIES[7]
+                                const cat = CATEGORIES.find(c => c.value === item.category) || CATEGORIES[6]
+                                const isResolved = item.status === 'resolved'
                                 return (
-                                    <article key={item.id} className="glass-card animate-fade-in"
+                                    <article key={item._id} className="glass-card animate-fade-in"
                                         style={{
                                             padding: '1.25rem 1.5rem',
                                             borderLeft: '3px solid',
-                                            borderImage: item.found
+                                            borderImage: isResolved
                                                 ? 'linear-gradient(135deg,#34d399,#06b6d4) 1'
                                                 : item.type === 'lost'
                                                     ? 'linear-gradient(135deg,#fb7185,#f97316) 1'
                                                     : 'linear-gradient(135deg,#34d399,#06b6d4) 1',
-                                            opacity: item.found ? 0.65 : 1,
+                                            opacity: isResolved ? 0.65 : 1,
                                             transition: 'opacity 0.3s',
                                         }}>
                                         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem' }}>
                                             {/* Left content */}
                                             <div style={{ flex: 1, minWidth: 0 }}>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                                                    <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)', textDecoration: item.found ? 'line-through' : 'none' }}>{item.title}</h3>
+                                                    <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)', textDecoration: isResolved ? 'line-through' : 'none' }}>{item.title}</h3>
                                                     <span className="badge" style={{
                                                         background: item.type === 'lost' ? 'rgba(251,113,133,0.15)' : 'rgba(52,211,153,0.15)',
                                                         color: item.type === 'lost' ? 'var(--accent-rose)' : 'var(--accent-emerald)',
                                                         fontSize: '0.65rem',
                                                     }}>{item.type === 'lost' ? '🔴 Lost' : '🟢 Found'}</span>
-                                                    {item.found && <span className="badge" style={{ background: 'rgba(52,211,153,0.15)', color: 'var(--accent-emerald)', fontSize: '0.65rem' }}>✅ Resolved</span>}
+                                                    {isResolved && <span className="badge" style={{ background: 'rgba(52,211,153,0.15)', color: 'var(--accent-emerald)', fontSize: '0.65rem' }}>✅ Resolved</span>}
                                                 </div>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.4rem', flexWrap: 'wrap' }}>
-                                                    <span className="badge badge-glass" style={{ gap: '0.25rem' }}>{cat.icon} {item.category}</span>
+                                                    <span className="badge badge-glass" style={{ gap: '0.25rem' }}>{cat.icon} {cat.label}</span>
                                                     {item.location && <span className="badge badge-glass">📍 {item.location}</span>}
                                                     <span className="badge badge-glass" style={{ fontSize: '0.65rem' }}>
                                                         {new Date(item.createdAt).toLocaleDateString()}
@@ -239,8 +274,8 @@ const LostFound = ({ onBack }) => {
                                                 {item.description && (
                                                     <p style={{ margin: '0.6rem 0 0', fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{item.description}</p>
                                                 )}
-                                                {item.contact && (
-                                                    <div style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: 'var(--accent-cyan)' }}>📧 {item.contact}</div>
+                                                {item.contactInfo && (
+                                                    <div style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: 'var(--accent-cyan)' }}>📧 {item.contactInfo}</div>
                                                 )}
                                             </div>
 
@@ -248,23 +283,23 @@ const LostFound = ({ onBack }) => {
                                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem', flexShrink: 0 }}>
                                                 {/* Found checkmark button */}
                                                 <button
-                                                    onClick={() => toggleFound(item.id)}
-                                                    title={item.found ? 'Mark as still lost' : 'Mark as found'}
+                                                    onClick={() => toggleFound(item._id)}
+                                                    title={isResolved ? 'Mark as still lost' : 'Mark as found'}
                                                     style={{
                                                         width: 36, height: 36,
                                                         borderRadius: 'var(--radius-full)',
-                                                        border: item.found ? '2px solid var(--accent-emerald)' : '2px solid var(--glass-border)',
-                                                        background: item.found ? 'rgba(52,211,153,0.15)' : 'transparent',
-                                                        color: item.found ? 'var(--accent-emerald)' : 'var(--text-muted)',
+                                                        border: isResolved ? '2px solid var(--accent-emerald)' : '2px solid var(--glass-border)',
+                                                        background: isResolved ? 'rgba(52,211,153,0.15)' : 'transparent',
+                                                        color: isResolved ? 'var(--accent-emerald)' : 'var(--text-muted)',
                                                         fontSize: '1rem',
                                                         cursor: 'pointer',
                                                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                                                         transition: 'all 0.25s',
                                                     }}
                                                 >
-                                                    {item.found ? '✓' : '○'}
+                                                    {isResolved ? '✓' : '○'}
                                                 </button>
-                                                <button onClick={() => deleteItem(item.id)} className="btn-ghost btn-danger" style={{ padding: '0.25rem 0.6rem', fontSize: '0.7rem' }}>
+                                                <button onClick={() => deleteItem(item._id)} className="btn-ghost btn-danger" style={{ padding: '0.25rem 0.6rem', fontSize: '0.7rem' }}>
                                                     Delete
                                                 </button>
                                             </div>

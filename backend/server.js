@@ -2,6 +2,10 @@ import express from 'express'
 import cors from 'cors'
 import connectdb from './config/db.js'
 import authRoutes from './routes/authRoutes.js'
+import eventRoutes from './routes/eventRoutes.js'
+import groupRoutes from './routes/groupRoutes.js'
+import lostFoundRoutes from './routes/lostFoundRoutes.js'
+import connectionRoutes from './routes/connectionRoutes.js'
 
 import dotenv from "dotenv";
 dotenv.config();
@@ -27,6 +31,10 @@ await connectdb();
 
 // Routes
 app.use('/api/auth', authRoutes)
+app.use('/api/events', eventRoutes)
+app.use('/api/groups', groupRoutes)
+app.use('/api/lostfound', lostFoundRoutes)
+app.use('/api/connections', connectionRoutes)
 
 // Health check route
 app.get('/api/health', (req, res) => {

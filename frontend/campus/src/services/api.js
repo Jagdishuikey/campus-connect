@@ -10,7 +10,7 @@ export const authAPI = {
       },
       body: JSON.stringify({ name, email, password }),
     });
-    
+
     const data = await response.json();
     if (!response.ok) {
       throw new Error(data.message || 'Signup failed');
@@ -26,7 +26,7 @@ export const authAPI = {
       },
       body: JSON.stringify({ email, password }),
     });
-    
+
     const data = await response.json();
     if (!response.ok) {
       throw new Error(data.message || 'Login failed');
@@ -42,10 +42,28 @@ export const authAPI = {
         'Authorization': `Bearer ${token}`,
       },
     });
-    
+
     const data = await response.json();
     if (!response.ok) {
       throw new Error(data.message || 'Token verification failed');
+    }
+    return data;
+  },
+
+  updateProfile: async (profileData) => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_BASE_URL}/auth/profile`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(profileData),
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || 'Profile update failed');
     }
     return data;
   },
@@ -58,7 +76,7 @@ export const authAPI = {
         'Authorization': `Bearer ${token}`,
       },
     });
-    
+
     const data = await response.json();
     if (!response.ok) {
       throw new Error(data.message || 'Logout failed');
@@ -70,7 +88,7 @@ export const authAPI = {
 // Generic fetch with authorization
 export const fetchWithAuth = async (url, options = {}) => {
   const token = localStorage.getItem('token');
-  
+
   const headers = {
     'Content-Type': 'application/json',
     ...options.headers,
@@ -87,3 +105,162 @@ export const fetchWithAuth = async (url, options = {}) => {
 
   return response;
 };
+
+// Events API
+export const eventsAPI = {
+  getAll: async () => {
+    const res = await fetchWithAuth(`${API_BASE_URL}/events`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to fetch events');
+    return data;
+  },
+  create: async (eventData) => {
+    const res = await fetchWithAuth(`${API_BASE_URL}/events`, {
+      method: 'POST',
+      body: JSON.stringify(eventData),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to create event');
+    return data;
+  },
+  update: async (id, updateData) => {
+    const res = await fetchWithAuth(`${API_BASE_URL}/events/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(updateData),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to update event');
+    return data;
+  },
+  delete: async (id) => {
+    const res = await fetchWithAuth(`${API_BASE_URL}/events/${id}`, {
+      method: 'DELETE',
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to delete event');
+    return data;
+  },
+};
+
+// Groups API
+export const groupsAPI = {
+  getAll: async () => {
+    const res = await fetchWithAuth(`${API_BASE_URL}/groups`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to fetch groups');
+    return data;
+  },
+  create: async (groupData) => {
+    const res = await fetchWithAuth(`${API_BASE_URL}/groups`, {
+      method: 'POST',
+      body: JSON.stringify(groupData),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to create group');
+    return data;
+  },
+  update: async (id, updateData) => {
+    const res = await fetchWithAuth(`${API_BASE_URL}/groups/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(updateData),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to update group');
+    return data;
+  },
+  delete: async (id) => {
+    const res = await fetchWithAuth(`${API_BASE_URL}/groups/${id}`, {
+      method: 'DELETE',
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to delete group');
+    return data;
+  },
+  join: async (id) => {
+    const res = await fetchWithAuth(`${API_BASE_URL}/groups/${id}/join`, {
+      method: 'POST',
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to join group');
+    return data;
+  },
+  leave: async (id) => {
+    const res = await fetchWithAuth(`${API_BASE_URL}/groups/${id}/leave`, {
+      method: 'POST',
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to leave group');
+    return data;
+  },
+};
+
+// Lost & Found API
+export const lostFoundAPI = {
+  getAll: async () => {
+    const res = await fetchWithAuth(`${API_BASE_URL}/lostfound`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to fetch items');
+    return data;
+  },
+  create: async (itemData) => {
+    const res = await fetchWithAuth(`${API_BASE_URL}/lostfound`, {
+      method: 'POST',
+      body: JSON.stringify(itemData),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to report item');
+    return data;
+  },
+  update: async (id, updateData) => {
+    const res = await fetchWithAuth(`${API_BASE_URL}/lostfound/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(updateData),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to update item');
+    return data;
+  },
+  delete: async (id) => {
+    const res = await fetchWithAuth(`${API_BASE_URL}/lostfound/${id}`, {
+      method: 'DELETE',
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to delete item');
+    return data;
+  },
+};
+
+// Connections API
+export const connectionsAPI = {
+  getUsers: async (search = '') => {
+    const res = await fetchWithAuth(`${API_BASE_URL}/connections/users?search=${encodeURIComponent(search)}`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to fetch users');
+    return data;
+  },
+  getAll: async () => {
+    const res = await fetchWithAuth(`${API_BASE_URL}/connections`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to fetch connections');
+    return data;
+  },
+  sendRequest: async (recipientId, message = '') => {
+    const res = await fetchWithAuth(`${API_BASE_URL}/connections`, {
+      method: 'POST',
+      body: JSON.stringify({ recipientId, message }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to send request');
+    return data;
+  },
+  update: async (id, status) => {
+    const res = await fetchWithAuth(`${API_BASE_URL}/connections/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ status }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to update connection');
+    return data;
+  },
+};
+

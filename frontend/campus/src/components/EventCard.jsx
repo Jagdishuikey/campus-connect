@@ -16,14 +16,14 @@ export default function EventCard({ event, onDelete, onUpdate }) {
             <span className="badge badge-glass">📍 {event.location || 'Location TBD'}</span>
           </div>
         </div>
-        <button onClick={() => onDelete(event.id)} className="btn-ghost btn-danger" style={{ padding: '0.3rem 0.7rem', fontSize: '0.75rem', flexShrink: 0 }}>Delete</button>
+        <button onClick={() => onDelete(event._id)} className="btn-ghost btn-danger" style={{ padding: '0.3rem 0.7rem', fontSize: '0.75rem', flexShrink: 0 }}>Delete</button>
       </div>
 
       {event.description && (
         <p style={{ margin: '0.875rem 0 0', fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>{event.description}</p>
       )}
 
-      <Poll poll={event.poll} eventId={event.id} onVote={handlePollUpdate} />
+      <Poll poll={event.poll} eventId={event._id} onVote={handlePollUpdate} />
     </article>
   )
 }

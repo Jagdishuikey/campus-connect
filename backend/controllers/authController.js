@@ -150,6 +150,52 @@ export const verifyToken = async (req, res) => {
   }
 };
 
+// Update Profile
+export const updateProfile = async (req, res) => {
+  try {
+    const { name, bio, college, phone } = req.body;
+
+    const updateData = {};
+    if (name !== undefined) updateData.name = name;
+    if (bio !== undefined) updateData.bio = bio;
+    if (college !== undefined) updateData.college = college;
+    if (phone !== undefined) updateData.phone = phone;
+
+    const user = await User.findByIdAndUpdate(
+      req.user.userId,
+      { $set: updateData },
+      { new: true, runValidators: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Profile updated successfully',
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        bio: user.bio,
+        college: user.college,
+        phone: user.phone,
+        createdAt: user.createdAt,
+      }
+    });
+  } catch (error) {
+    console.error('Update profile error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Error updating profile'
+    });
+  }
+};
+
 // Logout (optional - client-side mainly)
 export const logout = (req, res) => {
   res.status(200).json({

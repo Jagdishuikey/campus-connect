@@ -20,13 +20,11 @@ export default function EventForm({ onCreate }) {
     options.forEach(o => (poll.votes[o] = 0))
 
     const event = {
-      id: Date.now().toString(),
       title: title.trim(),
       date: date || null,
       location: location.trim(),
       description: description.trim(),
       poll,
-      createdAt: new Date().toISOString(),
     }
 
     onCreate(event)

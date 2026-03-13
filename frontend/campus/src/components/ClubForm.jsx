@@ -3,7 +3,6 @@ import React, { useState } from 'react'
 export default function ClubForm({ onCreate }) {
   const [name, setName] = useState('')
   const [category, setCategory] = useState('')
-  const [admin, setAdmin] = useState('')
   const [college, setCollege] = useState('')
   const [description, setDescription] = useState('')
   const [members, setMembers] = useState(1)
@@ -12,18 +11,15 @@ export default function ClubForm({ onCreate }) {
     e.preventDefault()
     if (!name.trim()) return
     const club = {
-      id: Date.now().toString(),
       name: name.trim(),
       category: category.trim(),
-      admin: admin.trim(),
       college: college.trim(),
       description: description.trim(),
       members: Number(members) || 0,
       rating: { total: 0, count: 0 },
-      createdAt: new Date().toISOString(),
     }
     onCreate(club)
-    setName(''); setCategory(''); setAdmin(''); setCollege(''); setDescription(''); setMembers(1)
+    setName(''); setCategory(''); setCollege(''); setDescription(''); setMembers(1)
   }
 
   return (
@@ -35,7 +31,6 @@ export default function ClubForm({ onCreate }) {
         <input value={name} onChange={e => setName(e.target.value)} placeholder="Club name" className="glass-input" />
         <div className="grid-2col">
           <input value={category} onChange={e => setCategory(e.target.value)} placeholder="Category (e.g., Sports)" className="glass-input" />
-          <input value={admin} onChange={e => setAdmin(e.target.value)} placeholder="Admin name" className="glass-input" />
         </div>
         <div className="grid-2col">
           <input value={college} onChange={e => setCollege(e.target.value)} placeholder="🏫 College" className="glass-input" />

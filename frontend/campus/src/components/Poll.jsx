@@ -1,6 +1,8 @@
 import React, { useState, useMemo } from 'react'
 
 export default function Poll({ poll, eventId, onVote }) {
+  if (!poll || !poll.options || !Array.isArray(poll.options)) return null
+
   const [selected, setSelected] = useState('')
   const votedKey = `campus_voted_${eventId}`
   const hasVoted = Boolean(localStorage.getItem(votedKey))

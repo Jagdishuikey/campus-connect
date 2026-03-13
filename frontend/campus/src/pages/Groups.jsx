@@ -1,24 +1,80 @@
 import React, { useEffect, useState } from 'react'
 import ClubForm from '../components/ClubForm'
 import ClubCard from '../components/ClubCard'
+import { groupsAPI } from '../services/api'
 
-const STORAGE_KEY = 'campus_clubs'
-
-const Groups = ({ onBack }) => {
+const Groups = ({ onBack, user }) => {
 	const [clubs, setClubs] = useState([])
 	const [query, setQuery] = useState('')
+	const [loading, setLoading] = useState(true)
+	const [error, setError] = useState('')
 
 	useEffect(() => {
-		try { const raw = localStorage.getItem(STORAGE_KEY); setClubs(raw ? JSON.parse(raw) : []) } catch (e) { setClubs([]) }
+		loadGroups()
 	}, [])
 
-	useEffect(() => {
-		try { localStorage.setItem(STORAGE_KEY, JSON.stringify(clubs)) } catch (e) { }
-	}, [clubs])
+	async function loadGroups() {
+		try {
+			setLoading(true)
+			const data = await groupsAPI.getAll()
+			setClubs(data.groups || [])
+		} catch (e) {
+			setError(e.message)
+			console.error('Load groups error:', e)
+		} finally {
+			setLoading(false)
+		}
+	}
 
-	function addClub(c) { setClubs(prev => [c, ...prev]) }
-	function deleteClub(id) { setClubs(prev => prev.filter(c => c.id !== id)); try { localStorage.removeItem(`campus_club_rated_${id}`) } catch (e) { } }
-	function updateClub(updated) { setClubs(prev => prev.map(c => c.id === updated.id ? updated : c)) }
+	async function addClub(c) {
+		try {
+			setError('')
+			const data = await groupsAPI.create(c)
+			setClubs(prev => [data.group, ...prev])
+		} catch (e) {
+			setError(e.message)
+		}
+	}
+
+	async function deleteClub(id) {
+		try {
+			setError('')
+			await groupsAPI.delete(id)
+			setClubs(prev => prev.filter(c => c._id !== id))
+		} catch (e) {
+			setError(e.message)
+		}
+	}
+
+	async function updateClub(updated) {
+		try {
+			setError('')
+			const data = await groupsAPI.update(updated._id, updated)
+			setClubs(prev => prev.map(c => c._id === data.group._id ? data.group : c))
+		} catch (e) {
+			setError(e.message)
+		}
+	}
+
+	async function joinClub(id) {
+		try {
+			setError('')
+			const data = await groupsAPI.join(id)
+			setClubs(prev => prev.map(c => c._id === data.group._id ? data.group : c))
+		} catch (e) {
+			setError(e.message)
+		}
+	}
+
+	async function leaveClub(id) {
+		try {
+			setError('')
+			const data = await groupsAPI.leave(id)
+			setClubs(prev => prev.map(c => c._id === data.group._id ? data.group : c))
+		} catch (e) {
+			setError(e.message)
+		}
+	}
 
 	const filtered = clubs.filter(c => {
 		if (!query.trim()) return true
@@ -36,6 +92,12 @@ const Groups = ({ onBack }) => {
 					<p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '0.3rem 0 0' }}>Student clubs and communities</p>
 				</div>
 			</header>
+
+			{error && (
+				<div style={{ margin: '0 0 1rem', padding: '0.75rem 1rem', background: 'rgba(251,113,133,0.15)', borderRadius: 'var(--radius-md)', color: 'var(--accent-rose)', fontSize: '0.85rem' }}>
+					⚠️ {error}
+				</div>
+			)}
 
 			<main style={{ position: 'relative', zIndex: 1 }}>
 				<div className="grid-form-list">
@@ -58,14 +120,19 @@ const Groups = ({ onBack }) => {
 						</div>
 
 						<div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
-							{filtered.length === 0 && (
+							{loading && (
+								<div className="glass-card" style={{ padding: '2rem', textAlign: 'center' }}>
+									<p style={{ color: 'var(--text-muted)', margin: 0 }}>Loading groups...</p>
+								</div>
+							)}
+							{!loading && filtered.length === 0 && (
 								<div className="glass-card" style={{ padding: '2rem', textAlign: 'center' }}>
 									<span style={{ fontSize: '2rem', display: 'block', marginBottom: '0.5rem' }}>👥</span>
 									<p style={{ color: 'var(--text-muted)', margin: 0 }}>No clubs yet — add one using the form.</p>
 								</div>
 							)}
 							{filtered.map(club => (
-								<ClubCard key={club.id} club={club} onDelete={deleteClub} onRate={updateClub} />
+								<ClubCard key={club._id} club={club} onDelete={deleteClub} onRate={updateClub} onJoin={joinClub} onLeave={leaveClub} user={user} />
 							))}
 						</div>
 					</div>

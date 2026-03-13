@@ -67,8 +67,8 @@ function App() {
     <ThemeProvider>
       {page === 'dashboard' && <Dashboard user={user} onSignOut={signOut} onNavigate={setPage} />}
       {page === 'events' && <Events onBack={() => setPage('dashboard')} />}
-      {page === 'groups' && <Groups onBack={() => setPage('dashboard')} />}
-      {page === 'connections' && <Connection onBack={() => setPage('dashboard')} />}
+      {page === 'groups' && <Groups onBack={() => setPage('dashboard')} user={user} />}
+      {page === 'connections' && <Connection onBack={() => setPage('dashboard')} user={user} />}
       {page === 'lostfound' && <LostFound onBack={() => setPage('dashboard')} />}
       {page === 'profile' && <ProfilePage user={user} onBack={() => setPage('dashboard')} onSignOut={signOut} />}
     </ThemeProvider>
