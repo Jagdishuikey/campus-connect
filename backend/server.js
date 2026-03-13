@@ -1,5 +1,7 @@
 import express from 'express'
 import cors from 'cors'
+import { createServer } from 'http'
+import { Server } from 'socket.io'
 import connectdb from './config/db.js'
 import authRoutes from './routes/authRoutes.js'
 import eventRoutes from './routes/eventRoutes.js'
@@ -12,6 +14,80 @@ dotenv.config();
 const PORT = process.env.PORT || 3000
 
 const app = express()
+const httpServer = createServer(app)
+
+// Socket.IO setup
+const io = new Server(httpServer, {
+  cors: {
+    origin: 'http://localhost:5173',
+    methods: ['GET', 'POST'],
+    credentials: true,
+  }
+})
+
+// Track online users: userId -> socketId
+const onlineUsers = new Map()
+
+io.on('connection', (socket) => {
+  console.log('Socket connected:', socket.id)
+
+  // User registers their identity
+  socket.on('register', (userId) => {
+    if (userId) {
+      onlineUsers.set(userId, socket.id)
+      console.log(`User ${userId} is online (socket: ${socket.id})`)
+      // Broadcast online status
+      io.emit('user_online', userId)
+    }
+  })
+
+  // User sends a message
+  socket.on('send_message', (data) => {
+    const { recipientId, message } = data
+    const recipientSocket = onlineUsers.get(recipientId)
+    if (recipientSocket) {
+      io.to(recipientSocket).emit('receive_message', message)
+    }
+  })
+
+  // Typing indicator
+  socket.on('typing', (data) => {
+    const { recipientId, senderId } = data
+    const recipientSocket = onlineUsers.get(recipientId)
+    if (recipientSocket) {
+      io.to(recipientSocket).emit('user_typing', { senderId })
+    }
+  })
+
+  socket.on('stop_typing', (data) => {
+    const { recipientId, senderId } = data
+    const recipientSocket = onlineUsers.get(recipientId)
+    if (recipientSocket) {
+      io.to(recipientSocket).emit('user_stop_typing', { senderId })
+    }
+  })
+
+  // Connection request notification
+  socket.on('connection_request', (data) => {
+    const { recipientId } = data
+    const recipientSocket = onlineUsers.get(recipientId)
+    if (recipientSocket) {
+      io.to(recipientSocket).emit('new_connection_request', data)
+    }
+  })
+
+  socket.on('disconnect', () => {
+    // Remove from online users
+    for (const [userId, socketId] of onlineUsers.entries()) {
+      if (socketId === socket.id) {
+        onlineUsers.delete(userId)
+        io.emit('user_offline', userId)
+        console.log(`User ${userId} went offline`)
+        break
+      }
+    }
+  })
+})
 
 // CORS Middleware - must be before routes
 app.use(cors({
@@ -46,6 +122,6 @@ app.use((req, res) => {
   res.status(404).json({ success: false, message: 'Route not found' })
 })
 
-app.listen(PORT, () => {
-  console.log(`Server started on port ${PORT}`)
+httpServer.listen(PORT, () => {
+  console.log(`Server started on port ${PORT} with Socket.IO`)
 })

@@ -262,5 +262,20 @@ export const connectionsAPI = {
     if (!res.ok) throw new Error(data.message || 'Failed to update connection');
     return data;
   },
+  sendMessage: async (recipientId, content) => {
+    const res = await fetchWithAuth(`${API_BASE_URL}/connections/messages`, {
+      method: 'POST',
+      body: JSON.stringify({ recipientId, content }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to send message');
+    return data;
+  },
+  getMessages: async (userId) => {
+    const res = await fetchWithAuth(`${API_BASE_URL}/connections/messages/${userId}`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to fetch messages');
+    return data;
+  },
 };
 

@@ -9,6 +9,7 @@ import Groups from './pages/Groups'
 import Connection from './pages/Connection'
 import LostFound from './pages/LostFound'
 import ProfilePage from './pages/ProfilePage'
+import { connectSocket, disconnectSocket } from './services/socket'
 
 function App() {
   const [user, setUser] = useState(null)
@@ -32,12 +33,25 @@ function App() {
     setLoading(false)
   }, [])
 
+  // Auto-connect socket when user is already logged in on mount
+  useEffect(() => {
+    if (user) {
+      const userId = user.id || user._id
+      if (userId) connectSocket(userId)
+    }
+  }, [user])
+
   const handleAuth = (u) => {
     setUser(u)
     setPage('dashboard')
+    // Connect socket on login
+    const userId = u?.id || u?._id
+    if (userId) connectSocket(userId)
   }
 
   const signOut = () => {
+    // Disconnect socket
+    disconnectSocket()
     // Clear token and user from localStorage
     localStorage.removeItem('token')
     localStorage.removeItem('user')
