@@ -1,4 +1,5 @@
 import LostAndFound from '../models/LostAndFoundModel.js';
+import { uploadToCloudinary } from '../config/cloudinary.js';
 
 // Create Item
 export const createItem = async (req, res) => {
@@ -7,6 +8,12 @@ export const createItem = async (req, res) => {
 
         if (!title || !type) {
             return res.status(400).json({ success: false, message: 'Title and type are required' });
+        }
+
+        // Upload image to Cloudinary if provided
+        let imageUrl = null;
+        if (req.file) {
+            imageUrl = await uploadToCloudinary(req.file.buffer, 'campus-lostfound');
         }
 
         const item = new LostAndFound({
@@ -18,6 +25,7 @@ export const createItem = async (req, res) => {
             date: date || new Date(),
             reportedBy: req.user.userId,
             contactInfo: contactInfo || '',
+            image: imageUrl,
         });
 
         await item.save();

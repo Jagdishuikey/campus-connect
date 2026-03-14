@@ -17,8 +17,11 @@ const Connection = ({ onBack, user }) => {
 	const [sendingMsg, setSendingMsg] = useState(false)
 	const [isTyping, setIsTyping] = useState(false)
 	const [onlineUserIds, setOnlineUserIds] = useState(new Set())
+	const [chatImage, setChatImage] = useState(null)
+	const [chatImagePreview, setChatImagePreview] = useState(null)
 	const chatEndRef = useRef(null)
 	const typingTimeoutRef = useRef(null)
+	const chatImageRef = useRef(null)
 
 	const currentUserId = user?.id || user?._id
 
@@ -180,10 +183,10 @@ const Connection = ({ onBack, user }) => {
 
 	async function handleSendMessage(e) {
 		e.preventDefault()
-		if (!msgInput.trim() || !chatUser) return
+		if ((!msgInput.trim() && !chatImage) || !chatUser) return
 		try {
 			setSendingMsg(true)
-			const data = await connectionsAPI.sendMessage(chatUser._id, msgInput.trim())
+			const data = await connectionsAPI.sendMessage(chatUser._id, msgInput.trim() || null, chatImage)
 			setMessages(prev => [...prev, data.message])
 			// Emit via socket for real-time delivery
 			const socket = getSocket()
@@ -192,11 +195,19 @@ const Connection = ({ onBack, user }) => {
 				socket.emit('stop_typing', { recipientId: chatUser._id, senderId: currentUserId })
 			}
 			setMsgInput('')
+			clearChatImage()
 		} catch (e) {
 			setError(e.message)
 		} finally {
 			setSendingMsg(false)
 		}
+	}
+
+	function clearChatImage() {
+		setChatImage(null)
+		if (chatImagePreview) URL.revokeObjectURL(chatImagePreview)
+		setChatImagePreview(null)
+		if (chatImageRef.current) chatImageRef.current.value = ''
 	}
 
 	const pending = connections.filter(c => c.status === 'pending' && c.recipient?._id === currentUserId)
@@ -509,7 +520,15 @@ const Connection = ({ onBack, user }) => {
 											fontSize: '0.88rem',
 											lineHeight: 1.5,
 										}}>
-											{msg.content}
+											{msg.content && <span>{msg.content}</span>}
+										{msg.image && (
+											<img
+												src={msg.image}
+												alt="Shared image"
+												style={{ maxWidth: '100%', maxHeight: 200, borderRadius: 'var(--radius-md)', marginTop: msg.content ? '0.4rem' : 0, cursor: 'pointer', display: 'block' }}
+												onClick={() => window.open(msg.image, '_blank')}
+											/>
+										)}
 										</div>
 										<div style={{
 											fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '0.2rem',
@@ -547,7 +566,36 @@ const Connection = ({ onBack, user }) => {
 						</div>
 
 						{/* Message Input */}
+						{chatImagePreview && (
+							<div style={{ position: 'relative', display: 'inline-block', marginBottom: '0.5rem' }}>
+								<img src={chatImagePreview} alt="Preview" style={{ maxHeight: 80, borderRadius: 'var(--radius-md)', border: '1px solid var(--glass-border)' }} />
+								<button
+									onClick={clearChatImage}
+									style={{ position: 'absolute', top: -6, right: -6, width: 20, height: 20, borderRadius: '50%', background: 'var(--accent-rose)', color: '#fff', border: 'none', fontSize: '0.65rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+								>✕</button>
+							</div>
+						)}
 						<form onSubmit={handleSendMessage} style={{ display: 'flex', gap: '0.5rem' }}>
+							<input
+								ref={chatImageRef}
+								type="file"
+								accept="image/*"
+								onChange={e => {
+									const file = e.target.files[0]
+									if (!file) return
+									if (file.size > 5 * 1024 * 1024) { alert('Image must be under 5 MB'); return }
+									setChatImage(file)
+									setChatImagePreview(URL.createObjectURL(file))
+								}}
+								style={{ display: 'none' }}
+							/>
+							<button
+								type="button"
+								onClick={() => chatImageRef.current?.click()}
+								className="btn-ghost"
+								style={{ padding: '0.5rem 0.6rem', fontSize: '1rem', flexShrink: 0 }}
+								title="Attach image"
+							>📎</button>
 							<input
 								value={msgInput}
 								onChange={e => { setMsgInput(e.target.value); handleTyping() }}
@@ -556,7 +604,7 @@ const Connection = ({ onBack, user }) => {
 								style={{ flex: 1 }}
 								autoFocus
 							/>
-							<button type="submit" className="btn-gradient" disabled={sendingMsg || !msgInput.trim()} style={{ padding: '0.5rem 1.2rem' }}>
+							<button type="submit" className="btn-gradient" disabled={sendingMsg || (!msgInput.trim() && !chatImage)} style={{ padding: '0.5rem 1.2rem' }}>
 								{sendingMsg ? '...' : '📩 Send'}
 							</button>
 						</form>

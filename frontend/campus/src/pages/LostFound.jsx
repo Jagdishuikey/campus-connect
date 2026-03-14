@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { lostFoundAPI } from '../services/api'
 
 const CATEGORIES = [
@@ -25,6 +25,9 @@ const LostFound = ({ onBack }) => {
     const [location, setLocation] = useState('')
     const [contact, setContact] = useState('')
     const [itemType, setItemType] = useState('lost') // lost | found
+    const [imageFile, setImageFile] = useState(null)
+    const [imagePreview, setImagePreview] = useState(null)
+    const fileInputRef = useRef(null)
 
     useEffect(() => {
         loadItems()
@@ -57,9 +60,13 @@ const LostFound = ({ onBack }) => {
                 type: itemType,
                 date: new Date().toISOString(),
             }
-            const data = await lostFoundAPI.create(itemData)
+            const data = await lostFoundAPI.create(itemData, imageFile)
             setItems(prev => [data.item, ...prev])
             setTitle(''); setDescription(''); setLocation(''); setContact('')
+            setImageFile(null)
+            if (imagePreview) URL.revokeObjectURL(imagePreview)
+            setImagePreview(null)
+            if (fileInputRef.current) fileInputRef.current.value = ''
         } catch (e) {
             setError(e.message)
         }
@@ -195,6 +202,39 @@ const LostFound = ({ onBack }) => {
                                 <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Describe the item (color, brand, distinguishing marks...)" className="glass-input" rows={3} />
                                 <input value={contact} onChange={e => setContact(e.target.value)} placeholder="📧 Your contact info (email / phone)" className="glass-input" />
 
+                                {/* Image Upload */}
+                                <div>
+                                    <input
+                                        ref={fileInputRef}
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={e => {
+                                            const file = e.target.files[0]
+                                            if (!file) return
+                                            if (file.size > 5 * 1024 * 1024) { alert('Image must be under 5 MB'); return }
+                                            setImageFile(file)
+                                            setImagePreview(URL.createObjectURL(file))
+                                        }}
+                                        style={{ display: 'none' }}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className="btn-ghost"
+                                        style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}
+                                    >📷 Add Photo</button>
+                                    {imagePreview && (
+                                        <div style={{ position: 'relative', display: 'inline-block', marginLeft: '0.75rem' }}>
+                                            <img src={imagePreview} alt="Preview" style={{ maxHeight: 80, borderRadius: 'var(--radius-md)', border: '1px solid var(--glass-border)' }} />
+                                            <button
+                                                type="button"
+                                                onClick={() => { setImageFile(null); URL.revokeObjectURL(imagePreview); setImagePreview(null); if (fileInputRef.current) fileInputRef.current.value = '' }}
+                                                style={{ position: 'absolute', top: -6, right: -6, width: 20, height: 20, borderRadius: '50%', background: 'var(--accent-rose)', color: '#fff', border: 'none', fontSize: '0.65rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                            >✕</button>
+                                        </div>
+                                    )}
+                                </div>
+
                                 <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                                     <button type="submit" className="btn-gradient btn-gradient-warm">Post Item</button>
                                 </div>
@@ -276,6 +316,14 @@ const LostFound = ({ onBack }) => {
                                                 )}
                                                 {item.contactInfo && (
                                                     <div style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: 'var(--accent-cyan)' }}>📧 {item.contactInfo}</div>
+                                                )}
+                                                {item.image && (
+                                                    <img
+                                                        src={item.image}
+                                                        alt={item.title}
+                                                        style={{ marginTop: '0.6rem', maxWidth: '100%', maxHeight: 200, borderRadius: 'var(--radius-md)', objectFit: 'cover', cursor: 'pointer', border: '1px solid var(--glass-border)' }}
+                                                        onClick={() => window.open(item.image, '_blank')}
+                                                    />
                                                 )}
                                             </div>
 

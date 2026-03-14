@@ -89,8 +89,10 @@ export const authAPI = {
 export const fetchWithAuth = async (url, options = {}) => {
   const token = localStorage.getItem('token');
 
+  const isFormData = options.body instanceof FormData;
+
   const headers = {
-    'Content-Type': 'application/json',
+    ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
     ...options.headers,
   };
 
@@ -202,10 +204,17 @@ export const lostFoundAPI = {
     if (!res.ok) throw new Error(data.message || 'Failed to fetch items');
     return data;
   },
-  create: async (itemData) => {
+  create: async (itemData, imageFile) => {
+    const formData = new FormData();
+    Object.keys(itemData).forEach(key => {
+      if (itemData[key] !== undefined && itemData[key] !== null) {
+        formData.append(key, itemData[key]);
+      }
+    });
+    if (imageFile) formData.append('image', imageFile);
     const res = await fetchWithAuth(`${API_BASE_URL}/lostfound`, {
       method: 'POST',
-      body: JSON.stringify(itemData),
+      body: formData,
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || 'Failed to report item');
@@ -262,10 +271,14 @@ export const connectionsAPI = {
     if (!res.ok) throw new Error(data.message || 'Failed to update connection');
     return data;
   },
-  sendMessage: async (recipientId, content) => {
+  sendMessage: async (recipientId, content, imageFile) => {
+    const formData = new FormData();
+    formData.append('recipientId', recipientId);
+    if (content) formData.append('content', content);
+    if (imageFile) formData.append('image', imageFile);
     const res = await fetchWithAuth(`${API_BASE_URL}/connections/messages`, {
       method: 'POST',
-      body: JSON.stringify({ recipientId, content }),
+      body: formData,
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || 'Failed to send message');
@@ -287,13 +300,19 @@ export const postsAPI = {
     if (!res.ok) throw new Error(data.message || 'Failed to fetch posts');
     return data;
   },
-  create: async (text) => {
+  create: async (text, imageFile) => {
+    const formData = new FormData();
+    if (text) formData.append('text', text);
+    if (imageFile) formData.append('image', imageFile);
     const res = await fetchWithAuth(`${API_BASE_URL}/posts`, {
       method: 'POST',
-      body: JSON.stringify({ text }),
+      body: formData,
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Failed to create post');
+    if (!res.ok) {
+      console.error('Post creation failed - status:', res.status, 'response:', data);
+      throw new Error(data.message || 'Failed to create post');
+    }
     return data;
   },
   delete: async (id) => {

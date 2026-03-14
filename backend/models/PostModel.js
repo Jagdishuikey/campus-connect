@@ -18,9 +18,12 @@ const postSchema = new mongoose.Schema({
   },
   text: {
     type: String,
-    required: [true, 'Post text is required'],
     trim: true,
     maxlength: [1000, 'Post cannot exceed 1000 characters']
+  },
+  image: {
+    type: String,
+    default: null
   },
   createdAt: {
     type: Date,

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { postsAPI } from '../services/api'
 import { getSocket } from '../services/socket'
 
@@ -23,7 +23,6 @@ const ActivityItem = ({ a, currentUserId, onDelete }) => (
         <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-primary)' }}>{a.authorName}</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexShrink: 0 }}>
           <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{timeAgo(a.createdAt)}</span>
-          {/* Only the author can delete their own post */}
           {(a.author === currentUserId) && (
             <button
               onClick={() => { if (window.confirm('Delete this post?')) onDelete(a._id) }}
@@ -34,7 +33,23 @@ const ActivityItem = ({ a, currentUserId, onDelete }) => (
           )}
         </div>
       </div>
-      <p style={{ margin: '0.4rem 0 0', fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{a.text}</p>
+      {a.text && <p style={{ margin: '0.4rem 0 0', fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{a.text}</p>}
+      {a.image && (
+        <img
+          src={a.image}
+          alt="Post attachment"
+          style={{
+            marginTop: '0.6rem',
+            maxWidth: '100%',
+            maxHeight: 300,
+            borderRadius: 'var(--radius-md)',
+            objectFit: 'cover',
+            cursor: 'pointer',
+            border: '1px solid var(--glass-border)',
+          }}
+          onClick={() => window.open(a.image, '_blank')}
+        />
+      )}
     </div>
   </div>
 )
@@ -44,6 +59,9 @@ const Activity = ({ user }) => {
   const [items, setItems] = useState([])
   const [newText, setNewText] = useState('')
   const [posting, setPosting] = useState(false)
+  const [imageFile, setImageFile] = useState(null)
+  const [imagePreview, setImagePreview] = useState(null)
+  const fileInputRef = useRef(null)
 
   const currentUserId = user?.id || user?._id
 
@@ -60,7 +78,6 @@ const Activity = ({ user }) => {
 
     const handleNewPost = (post) => {
       setItems(prev => {
-        // Avoid duplicates (the author's own POST response already added it)
         if (prev.some(p => p._id === post._id)) return prev
         return [post, ...prev]
       })
@@ -79,25 +96,49 @@ const Activity = ({ user }) => {
     }
   }, [])
 
+  /* Handle image selection */
+  const handleImageSelect = (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image must be under 5 MB')
+      return
+    }
+    setImageFile(file)
+    setImagePreview(URL.createObjectURL(file))
+  }
+
+  const clearImage = () => {
+    setImageFile(null)
+    if (imagePreview) URL.revokeObjectURL(imagePreview)
+    setImagePreview(null)
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
   /* Create a post */
   const post = useCallback(async () => {
-    if (!newText.trim() || posting) return
+    if ((!newText.trim() && !imageFile) || posting) return
     setPosting(true)
     try {
-      const data = await postsAPI.create(newText)
-      // Optimistically add it (socket will also broadcast, but we de-dup above)
-      setItems(prev => {
-        if (prev.some(p => p._id === data.post._id)) return prev
-        return [data.post, ...prev]
-      })
-      setNewText('')
+      const data = await postsAPI.create(newText.trim() || null, imageFile)
+      if (data && data.post) {
+        setItems(prev => {
+          if (prev.some(p => p._id === data.post._id)) return prev
+          return [data.post, ...prev]
+        })
+        setNewText('')
+        // Clean up image state safely
+        setImageFile(null)
+        setImagePreview(prev => { if (prev) URL.revokeObjectURL(prev); return null })
+        if (fileInputRef.current) fileInputRef.current.value = ''
+      }
     } catch (err) {
       console.error('Failed to create post:', err)
       alert('Could not create post. Please try again.')
     } finally {
       setPosting(false)
     }
-  }, [newText, posting])
+  }, [newText, imageFile, posting])
 
   /* Delete a post */
   const remove = useCallback(async (id) => {
@@ -129,11 +170,48 @@ const Activity = ({ user }) => {
               className="glass-input"
               style={{ resize: 'vertical' }}
             />
+
+            {/* Image Preview */}
+            {imagePreview && (
+              <div style={{ position: 'relative', display: 'inline-block', marginTop: '0.5rem' }}>
+                <img
+                  src={imagePreview}
+                  alt="Preview"
+                  style={{ maxHeight: 120, borderRadius: 'var(--radius-md)', border: '1px solid var(--glass-border)' }}
+                />
+                <button
+                  onClick={clearImage}
+                  style={{
+                    position: 'absolute', top: -6, right: -6,
+                    width: 22, height: 22, borderRadius: '50%',
+                    background: 'var(--accent-rose)', color: '#fff',
+                    border: 'none', fontSize: '0.7rem', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+                  }}
+                >✕</button>
+              </div>
+            )}
+
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.75rem' }}>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Add photos, links, or tags</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageSelect}
+                  style={{ display: 'none' }}
+                />
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="btn-ghost"
+                  style={{ padding: '0.3rem 0.7rem', fontSize: '0.8rem' }}
+                  type="button"
+                >📷 Photo</button>
+              </div>
               <button
                 onClick={post}
-                disabled={posting || !newText.trim()}
+                disabled={posting || (!newText.trim() && !imageFile)}
                 className="btn-gradient"
                 style={{ padding: '0.4rem 1.25rem', fontSize: '0.8rem', opacity: posting ? 0.6 : 1 }}
               >

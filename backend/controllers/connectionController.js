@@ -1,6 +1,7 @@
 import Connection from '../models/ConnectionModel.js';
 import User from '../models/UserModel.js';
 import Message from '../models/MessageModel.js';
+import { uploadToCloudinary } from '../config/cloudinary.js';
 
 // Get All Users with connection status
 export const getUsers = async (req, res) => {
@@ -152,8 +153,8 @@ export const sendMessage = async (req, res) => {
     try {
         const { recipientId, content } = req.body;
 
-        if (!recipientId || !content?.trim()) {
-            return res.status(400).json({ success: false, message: 'Recipient and message content are required' });
+        if (!recipientId || (!content?.trim() && !req.file)) {
+            return res.status(400).json({ success: false, message: 'Recipient and message content or image are required' });
         }
 
         // Verify they are connected
@@ -169,10 +170,17 @@ export const sendMessage = async (req, res) => {
             return res.status(403).json({ success: false, message: 'You must be connected to send messages' });
         }
 
+        // Upload image to Cloudinary if provided
+        let imageUrl = null;
+        if (req.file) {
+            imageUrl = await uploadToCloudinary(req.file.buffer, 'campus-chat');
+        }
+
         const message = new Message({
             sender: req.user.userId,
             recipient: recipientId,
-            content: content.trim(),
+            content: content ? content.trim() : '',
+            image: imageUrl,
         });
 
         await message.save();

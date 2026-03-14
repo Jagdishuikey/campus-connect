@@ -1,5 +1,6 @@
 import Post from '../models/PostModel.js';
 import User from '../models/UserModel.js';
+import { uploadToCloudinary } from '../config/cloudinary.js';
 
 // GET /api/posts – fetch the latest 50 posts
 export const getAllPosts = async (req, res) => {
@@ -19,8 +20,10 @@ export const getAllPosts = async (req, res) => {
 export const createPost = async (req, res) => {
   try {
     const { text } = req.body;
-    if (!text || !text.trim()) {
-      return res.status(400).json({ success: false, message: 'Post text is required' });
+
+    // Must have either text or an image
+    if ((!text || !text.trim()) && !req.file) {
+      return res.status(400).json({ success: false, message: 'Post text or image is required' });
     }
 
     const user = await User.findById(req.user.userId);
@@ -36,11 +39,18 @@ export const createPost = async (req, res) => {
       .toUpperCase()
       .slice(0, 2);
 
+    // Upload image to Cloudinary if provided
+    let imageUrl = null;
+    if (req.file) {
+      imageUrl = await uploadToCloudinary(req.file.buffer, 'campus-posts');
+    }
+
     const post = await Post.create({
       author: user._id,
       authorName: user.name,
       avatar,
-      text: text.trim(),
+      text: text ? text.trim() : '',
+      image: imageUrl,
     });
 
     const postObj = post.toObject();
@@ -53,6 +63,7 @@ export const createPost = async (req, res) => {
 
     res.status(201).json({ success: true, post: postObj });
   } catch (error) {
+    console.error('Create post error:', error);
     res.status(500).json({ success: false, message: 'Failed to create post', error: error.message });
   }
 };
