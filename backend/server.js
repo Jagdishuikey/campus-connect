@@ -8,6 +8,7 @@ import eventRoutes from './routes/eventRoutes.js'
 import groupRoutes from './routes/groupRoutes.js'
 import lostFoundRoutes from './routes/lostFoundRoutes.js'
 import connectionRoutes from './routes/connectionRoutes.js'
+import postRoutes from './routes/postRoutes.js'
 
 import dotenv from "dotenv";
 dotenv.config();
@@ -24,6 +25,9 @@ const io = new Server(httpServer, {
     credentials: true,
   }
 })
+
+// Expose io to route handlers via req.app.get('io')
+app.set('io', io)
 
 // Track online users: userId -> socketId
 const onlineUsers = new Map()
@@ -111,6 +115,7 @@ app.use('/api/events', eventRoutes)
 app.use('/api/groups', groupRoutes)
 app.use('/api/lostfound', lostFoundRoutes)
 app.use('/api/connections', connectionRoutes)
+app.use('/api/posts', postRoutes)
 
 // Health check route
 app.get('/api/health', (req, res) => {

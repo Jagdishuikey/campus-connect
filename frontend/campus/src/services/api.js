@@ -279,3 +279,29 @@ export const connectionsAPI = {
   },
 };
 
+// Posts API
+export const postsAPI = {
+  getAll: async () => {
+    const res = await fetchWithAuth(`${API_BASE_URL}/posts`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to fetch posts');
+    return data;
+  },
+  create: async (text) => {
+    const res = await fetchWithAuth(`${API_BASE_URL}/posts`, {
+      method: 'POST',
+      body: JSON.stringify({ text }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to create post');
+    return data;
+  },
+  delete: async (id) => {
+    const res = await fetchWithAuth(`${API_BASE_URL}/posts/${id}`, {
+      method: 'DELETE',
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to delete post');
+    return data;
+  },
+};

@@ -68,7 +68,7 @@ const Dashboard = ({ user, onSignOut, onNavigate }) => {
         <section className="grid-activity">
           <div>
             <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1rem', color: 'var(--text-primary)' }}>Recent activity</h2>
-            <Activity />
+            <Activity user={user} />
           </div>
 
           <aside className="glass-card" style={{ padding: '1.5rem', alignSelf: 'start' }}>
