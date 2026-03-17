@@ -1,6 +1,6 @@
 import { io } from 'socket.io-client'
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'https://campus-connect-backend-tau.vercel.app/api';
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'https://campus-connect-backend-tau.vercel.app';
 
 let socket = null
 
