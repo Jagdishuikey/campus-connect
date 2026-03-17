@@ -1,8 +1,21 @@
 import React, { useState } from 'react'
 import ThemeToggle from '../components/ThemeToggle'
+import { authAPI } from '../services/api'
 
-const ProfilePage = ({ user, onBack, onSignOut }) => {
+const ProfilePage = ({ user, onBack, onSignOut, onUpdateUser }) => {
     const [activeTab, setActiveTab] = useState('about')
+    const [isEditing, setIsEditing] = useState(false)
+    const [editForm, setEditForm] = useState({
+        name: '',
+        bio: '',
+        college: '',
+        phone: '',
+    })
+    const [imageFile, setImageFile] = useState(null)
+    const [imagePreview, setImagePreview] = useState(null)
+    const [saving, setSaving] = useState(false)
+    const [saveError, setSaveError] = useState('')
+    const [saveSuccess, setSaveSuccess] = useState(false)
 
     const name = user?.name || 'Campus User'
     const email = user?.email || ''
@@ -35,6 +48,80 @@ const ProfilePage = ({ user, onBack, onSignOut }) => {
         { icon: '🟢', label: 'Status', value: 'Active' },
     ]
 
+    // Open edit modal and pre-fill with current user data
+    const openEditModal = () => {
+        setEditForm({
+            name: user?.name || '',
+            bio: user?.bio || '',
+            college: user?.college || '',
+            phone: user?.phone || '',
+        })
+        setImageFile(null)
+        setImagePreview(user?.profileImage || null)
+        setSaveError('')
+        setSaveSuccess(false)
+        setIsEditing(true)
+    }
+
+    const handleImageSelect = (e) => {
+        const file = e.target.files[0]
+        if (!file) return
+        if (file.size > 5 * 1024 * 1024) {
+            setSaveError('Image must be under 5 MB')
+            return
+        }
+        setImageFile(file)
+        setImagePreview(URL.createObjectURL(file))
+        setSaveError('')
+    }
+
+    const closeEditModal = () => {
+        setIsEditing(false)
+        setSaveError('')
+        setSaveSuccess(false)
+    }
+
+    const handleFormChange = (field, value) => {
+        setEditForm(prev => ({ ...prev, [field]: value }))
+    }
+
+    const handleSave = async () => {
+        // Basic validation
+        if (!editForm.name.trim()) {
+            setSaveError('Name is required')
+            return
+        }
+        if (editForm.name.trim().length < 2) {
+            setSaveError('Name must be at least 2 characters')
+            return
+        }
+
+        setSaving(true)
+        setSaveError('')
+        try {
+            const response = await authAPI.updateProfile({
+                name: editForm.name.trim(),
+                bio: editForm.bio.trim(),
+                college: editForm.college.trim(),
+                phone: editForm.phone.trim(),
+            }, imageFile)
+
+            if (response.success && response.user) {
+                // Merge updates into existing user to preserve fields like joinedGroups
+                const updatedUser = { ...user, ...response.user }
+                onUpdateUser(updatedUser)
+                setSaveSuccess(true)
+                setTimeout(() => {
+                    closeEditModal()
+                }, 1200)
+            }
+        } catch (err) {
+            setSaveError(err.message || 'Failed to update profile')
+        } finally {
+            setSaving(false)
+        }
+    }
+
     return (
         <div className="page-wrapper">
             {/* Floating decorative orbs */}
@@ -63,9 +150,13 @@ const ProfilePage = ({ user, onBack, onSignOut }) => {
                     {/* Avatar + Info */}
                     <div className="profile-hero-content">
                         <div className="profile-avatar-xl-wrapper">
-                            <div className="profile-avatar-xl">
-                                {initials}
-                            </div>
+                            {user?.profileImage ? (
+                                <img src={user.profileImage} alt={name} className="profile-avatar-xl profile-avatar-img" />
+                            ) : (
+                                <div className="profile-avatar-xl">
+                                    {initials}
+                                </div>
+                            )}
                             <div className="profile-status-dot" />
                         </div>
 
@@ -84,7 +175,7 @@ const ProfilePage = ({ user, onBack, onSignOut }) => {
 
                         {/* Action Buttons */}
                         <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.25rem', flexWrap: 'wrap', justifyContent: 'center' }}>
-                            <button className="btn-gradient" style={{ gap: '0.4rem' }}>
+                            <button className="btn-gradient" style={{ gap: '0.4rem' }} onClick={openEditModal}>
                                 ✏️ Edit Profile
                             </button>
                             <button className="btn-ghost" style={{ gap: '0.4rem' }}>
@@ -215,6 +306,138 @@ const ProfilePage = ({ user, onBack, onSignOut }) => {
                     </button>
                 </div>
             </main>
+
+            {/* ─── Edit Profile Modal ─── */}
+            {isEditing && (
+                <div className="edit-profile-overlay" onClick={(e) => { if (e.target === e.currentTarget) closeEditModal() }}>
+                    <div className="edit-profile-modal animate-fade-in">
+                        {/* Modal Header */}
+                        <div className="edit-profile-header">
+                            <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <span>✏️</span>
+                                <span className="gradient-text">Edit Profile</span>
+                            </h2>
+                            <button
+                                className="edit-profile-close-btn"
+                                onClick={closeEditModal}
+                                aria-label="Close"
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        {/* Modal Body */}
+                        <div className="edit-profile-body">
+                            {/* Profile Image Picker */}
+                            <div className="edit-profile-image-picker">
+                                <div className="edit-profile-image-preview">
+                                    {imagePreview ? (
+                                        <img src={imagePreview} alt="Preview" />
+                                    ) : (
+                                        <span className="edit-profile-image-placeholder">📷</span>
+                                    )}
+                                </div>
+                                <div className="edit-profile-image-info">
+                                    <label className="form-label" style={{ margin: 0 }}>Profile Picture</label>
+                                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: '0.25rem 0 0.75rem' }}>JPG, PNG or WebP. Max 5 MB.</p>
+                                    <label className="btn-ghost edit-profile-upload-btn" style={{ cursor: 'pointer' }}>
+                                        📁 Choose Image
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleImageSelect}
+                                            style={{ display: 'none' }}
+                                        />
+                                    </label>
+                                </div>
+                            </div>
+                            {/* Name */}
+                            <div className="edit-profile-field">
+                                <label className="form-label">👤 Name</label>
+                                <input
+                                    className="glass-input"
+                                    type="text"
+                                    placeholder="Your full name"
+                                    value={editForm.name}
+                                    onChange={(e) => handleFormChange('name', e.target.value)}
+                                    maxLength={50}
+                                />
+                                <span className="edit-profile-char-count">{editForm.name.length}/50</span>
+                            </div>
+
+                            {/* Bio */}
+                            <div className="edit-profile-field">
+                                <label className="form-label">✨ Bio</label>
+                                <textarea
+                                    className="glass-input"
+                                    placeholder="Tell people about yourself..."
+                                    value={editForm.bio}
+                                    onChange={(e) => handleFormChange('bio', e.target.value)}
+                                    maxLength={500}
+                                    rows={4}
+                                    style={{ resize: 'vertical' }}
+                                />
+                                <span className="edit-profile-char-count">{editForm.bio.length}/500</span>
+                            </div>
+
+                            {/* College */}
+                            <div className="edit-profile-field">
+                                <label className="form-label">🏫 College</label>
+                                <input
+                                    className="glass-input"
+                                    type="text"
+                                    placeholder="Your college or university"
+                                    value={editForm.college}
+                                    onChange={(e) => handleFormChange('college', e.target.value)}
+                                />
+                            </div>
+
+                            {/* Phone */}
+                            <div className="edit-profile-field">
+                                <label className="form-label">📱 Phone</label>
+                                <input
+                                    className="glass-input"
+                                    type="tel"
+                                    placeholder="Your phone number"
+                                    value={editForm.phone}
+                                    onChange={(e) => handleFormChange('phone', e.target.value)}
+                                />
+                            </div>
+
+                            {/* Error */}
+                            {saveError && (
+                                <div className="edit-profile-error">
+                                    ⚠️ {saveError}
+                                </div>
+                            )}
+
+                            {/* Success */}
+                            {saveSuccess && (
+                                <div className="edit-profile-success">
+                                    ✅ Profile updated successfully!
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Modal Actions */}
+                        <div className="edit-profile-actions">
+                            <button className="btn-ghost" onClick={closeEditModal} disabled={saving}>
+                                Cancel
+                            </button>
+                            <button className="btn-gradient" onClick={handleSave} disabled={saving}>
+                                {saving ? (
+                                    <>
+                                        <span className="edit-profile-spinner" />
+                                        Saving...
+                                    </>
+                                ) : (
+                                    '💾 Save Changes'
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

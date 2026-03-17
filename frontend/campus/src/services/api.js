@@ -50,15 +50,22 @@ export const authAPI = {
     return data;
   },
 
-  updateProfile: async (profileData) => {
+  updateProfile: async (profileData, imageFile) => {
     const token = localStorage.getItem('token');
+    const formData = new FormData();
+    Object.keys(profileData).forEach(key => {
+      if (profileData[key] !== undefined && profileData[key] !== null) {
+        formData.append(key, profileData[key]);
+      }
+    });
+    if (imageFile) formData.append('profileImage', imageFile);
+
     const response = await fetch(`${API_BASE_URL}/auth/profile`, {
       method: 'PUT',
       headers: {
-        'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
       },
-      body: JSON.stringify(profileData),
+      body: formData,
     });
 
     const data = await response.json();

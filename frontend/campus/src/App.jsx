@@ -84,7 +84,7 @@ function App() {
       {page === 'groups' && <Groups onBack={() => setPage('dashboard')} user={user} />}
       {page === 'connections' && <Connection onBack={() => setPage('dashboard')} user={user} />}
       {page === 'lostfound' && <LostFound onBack={() => setPage('dashboard')} />}
-      {page === 'profile' && <ProfilePage user={user} onBack={() => setPage('dashboard')} onSignOut={signOut} />}
+      {page === 'profile' && <ProfilePage user={user} onBack={() => setPage('dashboard')} onSignOut={signOut} onUpdateUser={(updatedUser) => { setUser(updatedUser); localStorage.setItem('user', JSON.stringify(updatedUser)); }} />}
     </ThemeProvider>
   )
 }

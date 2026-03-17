@@ -1,6 +1,7 @@
 import User from '../models/UserModel.js';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import { uploadToCloudinary } from '../config/cloudinary.js';
 
 // Generate JWT Token
 const generateToken = (userId) => {
@@ -109,7 +110,12 @@ export const login = async (req, res) => {
       user: {
         id: user._id,
         name: user.name,
-        email: user.email
+        email: user.email,
+        bio: user.bio,
+        college: user.college,
+        phone: user.phone,
+        profileImage: user.profileImage,
+        createdAt: user.createdAt,
       }
     });
   } catch (error) {
@@ -138,7 +144,12 @@ export const verifyToken = async (req, res) => {
       user: {
         id: user._id,
         name: user.name,
-        email: user.email
+        email: user.email,
+        bio: user.bio,
+        college: user.college,
+        phone: user.phone,
+        profileImage: user.profileImage,
+        createdAt: user.createdAt,
       }
     });
   } catch (error) {
@@ -153,13 +164,36 @@ export const verifyToken = async (req, res) => {
 // Update Profile
 export const updateProfile = async (req, res) => {
   try {
-    const { name, bio, college, phone } = req.body;
-
     const updateData = {};
-    if (name !== undefined) updateData.name = name;
-    if (bio !== undefined) updateData.bio = bio;
-    if (college !== undefined) updateData.college = college;
-    if (phone !== undefined) updateData.phone = phone;
+
+    // Safely read form fields — req.body may be undefined if multer skips parsing
+    if (req.body) {
+      if (req.body.name && req.body.name.trim() !== '') updateData.name = req.body.name.trim();
+      if (req.body.bio !== undefined) updateData.bio = req.body.bio.trim();
+      if (req.body.college !== undefined) updateData.college = req.body.college.trim();
+      if (req.body.phone !== undefined) updateData.phone = req.body.phone.trim();
+    }
+
+    // Handle profile image upload
+    if (req.file) {
+      try {
+        const imageUrl = await uploadToCloudinary(req.file.buffer, 'campus-profiles');
+        updateData.profileImage = imageUrl;
+      } catch (uploadErr) {
+        console.error('Cloudinary upload failed:', uploadErr);
+        return res.status(500).json({
+          success: false,
+          message: 'Image upload failed: ' + uploadErr.message
+        });
+      }
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No fields to update'
+      });
+    }
 
     const user = await User.findByIdAndUpdate(
       req.user.userId,
@@ -184,6 +218,7 @@ export const updateProfile = async (req, res) => {
         bio: user.bio,
         college: user.college,
         phone: user.phone,
+        profileImage: user.profileImage,
         createdAt: user.createdAt,
       }
     });

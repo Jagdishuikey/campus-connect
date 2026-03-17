@@ -1,6 +1,7 @@
 import express from 'express';
 import { signup, login, verifyToken, logout, updateProfile } from '../controllers/authController.js';
 import { verifyTokenMiddleware, isAuthenticated } from '../middleware/authMiddleware.js';
+import upload from '../middleware/upload.js';
 
 const router = express.Router();
 
@@ -11,6 +12,7 @@ router.post('/login', login);
 // Protected routes
 router.post('/verify', verifyTokenMiddleware, isAuthenticated, verifyToken);
 router.post('/logout', verifyTokenMiddleware, logout);
-router.put('/profile', verifyTokenMiddleware, isAuthenticated, updateProfile);
+router.put('/profile', verifyTokenMiddleware, isAuthenticated, upload.single('profileImage'), updateProfile);
 
 export default router;
+

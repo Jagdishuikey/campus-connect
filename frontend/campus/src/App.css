@@ -845,6 +845,10 @@ textarea.glass-input {
     0 12px 40px rgba(139, 92, 246, 0.3);
 }
 
+.profile-avatar-img {
+  object-fit: cover;
+}
+
 .profile-status-dot {
   position: absolute;
   bottom: 6px;
@@ -994,4 +998,243 @@ textarea.glass-input {
   .profile-tab {
     border-radius: var(--radius-md);
   }
+}
+
+/* ============================================
+   EDIT PROFILE MODAL
+   ============================================ */
+
+/* ---------- Overlay ---------- */
+.edit-profile-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  animation: editOverlayIn 0.25s ease;
+}
+
+@keyframes editOverlayIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ---------- Modal Card ---------- */
+.edit-profile-modal {
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: var(--bg-surface);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  box-shadow:
+    0 24px 80px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(139, 92, 246, 0.1),
+    0 0 60px rgba(139, 92, 246, 0.08);
+  animation: editModalSlide 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes editModalSlide {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+[data-theme="light"] .edit-profile-modal {
+  background: var(--bg-base);
+  box-shadow:
+    0 24px 80px rgba(0, 0, 0, 0.15),
+    0 0 0 1px rgba(139, 92, 246, 0.08);
+}
+
+/* ---------- Header ---------- */
+.edit-profile-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.edit-profile-close-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-base);
+}
+
+.edit-profile-close-btn:hover {
+  background: rgba(251, 113, 133, 0.15);
+  border-color: var(--accent-rose);
+  color: var(--accent-rose);
+  transform: rotate(90deg);
+}
+
+/* ---------- Body ---------- */
+.edit-profile-body {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* ---------- Field ---------- */
+.edit-profile-field {
+  position: relative;
+}
+
+.edit-profile-field .form-label {
+  margin-bottom: 0.5rem;
+  font-size: 0.8rem;
+}
+
+.edit-profile-char-count {
+  display: block;
+  text-align: right;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 0.3rem;
+}
+
+/* ---------- Error / Success ---------- */
+.edit-profile-error {
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  background: rgba(251, 113, 133, 0.1);
+  border: 1px solid rgba(251, 113, 133, 0.25);
+  color: var(--accent-rose);
+  font-size: 0.85rem;
+  font-weight: 500;
+  animation: fadeInUp 0.3s ease;
+}
+
+.edit-profile-success {
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  background: rgba(52, 211, 153, 0.1);
+  border: 1px solid rgba(52, 211, 153, 0.25);
+  color: var(--accent-emerald);
+  font-size: 0.85rem;
+  font-weight: 500;
+  animation: fadeInUp 0.3s ease;
+}
+
+/* ---------- Actions ---------- */
+.edit-profile-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem 1.25rem;
+  border-top: 1px solid var(--glass-border);
+}
+
+/* ---------- Spinner ---------- */
+.edit-profile-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: editSpin 0.6s linear infinite;
+}
+
+@keyframes editSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* ---------- Modal Responsive ---------- */
+@media (max-width: 480px) {
+  .edit-profile-overlay {
+    padding: 0.75rem;
+    align-items: flex-end;
+  }
+
+  .edit-profile-modal {
+    max-height: 85vh;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  }
+
+  .edit-profile-header,
+  .edit-profile-body,
+  .edit-profile-actions {
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+  }
+
+  .edit-profile-image-picker {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+}
+
+/* ---------- Image Picker ---------- */
+.edit-profile-image-picker {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1rem;
+  background: var(--glass-bg);
+  border: 1px dashed var(--glass-border);
+  border-radius: var(--radius-lg);
+}
+
+.edit-profile-image-preview {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--bg-elevated);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 2px solid var(--glass-border);
+  transition: border-color var(--transition-base);
+}
+
+.edit-profile-image-preview:hover {
+  border-color: var(--accent-violet);
+}
+
+.edit-profile-image-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.edit-profile-image-placeholder {
+  font-size: 1.75rem;
+  opacity: 0.5;
+}
+
+.edit-profile-image-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.edit-profile-upload-btn {
+  display: inline-flex !important;
+  gap: 0.3rem;
+  font-size: 0.78rem !important;
 }

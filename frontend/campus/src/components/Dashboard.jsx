@@ -45,14 +45,35 @@ const Dashboard = ({ user, onSignOut, onNavigate }) => {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <ThemeToggle />
-          <button
-            onClick={() => onNavigate && onNavigate('profile')}
-            className="avatar avatar-md"
-            style={{ cursor: 'pointer', border: '2px solid var(--glass-border)', transition: 'all 0.25s ease', fontSize: '0.85rem' }}
-            title="My Profile"
-          >
-            {user?.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : '👤'}
-          </button>
+          {user?.profileImage ? (
+            <button
+              onClick={() => onNavigate && onNavigate('profile')}
+              style={{
+                cursor: 'pointer',
+                border: '2px solid var(--glass-border)',
+                transition: 'all 0.25s ease',
+                width: '3rem',
+                height: '3rem',
+                borderRadius: '9999px',
+                padding: 0,
+                overflow: 'hidden',
+                background: 'none',
+                flexShrink: 0,
+              }}
+              title="My Profile"
+            >
+              <img src={user.profileImage} alt={user.name || 'Profile'} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+            </button>
+          ) : (
+            <button
+              onClick={() => onNavigate && onNavigate('profile')}
+              className="avatar avatar-md"
+              style={{ cursor: 'pointer', border: '2px solid var(--glass-border)', transition: 'all 0.25s ease', fontSize: '0.85rem' }}
+              title="My Profile"
+            >
+              {user?.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : '👤'}
+            </button>
+          )}
         </div>
       </header>
 
