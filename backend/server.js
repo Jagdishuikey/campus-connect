@@ -95,7 +95,7 @@ io.on('connection', (socket) => {
 
 // CORS Middleware - must be before routes
 app.use(cors({
-  origin: 'https://campus-connect-kohl.vercel.app/' || 'http://localhost:5173',
+  origin: process.env.CLIENT_URL || 'https://campus-connect-kohl.vercel.app',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
