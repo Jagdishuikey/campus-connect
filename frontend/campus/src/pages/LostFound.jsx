@@ -1,5 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react'
+import { useDispatch } from 'react-redux'
 import { lostFoundAPI } from '../services/api'
+import { setPage } from '../store/uiSlice'
 
 const CATEGORIES = [
     { label: 'Electronics', value: 'electronics', icon: '📱', color: 'rgba(139,92,246,0.15)' },
@@ -11,7 +13,9 @@ const CATEGORIES = [
     { label: 'Other', value: 'other', icon: '📦', color: 'rgba(100,116,139,0.15)' },
 ]
 
-const LostFound = ({ onBack }) => {
+const LostFound = () => {
+    const dispatch = useDispatch()
+    const onBack = () => dispatch(setPage('dashboard'))
     const [items, setItems] = useState([])
     const [query, setQuery] = useState('')
     const [filterType, setFilterType] = useState('all') // all | lost | found

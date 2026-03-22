@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from 'react'
+import { useDispatch } from 'react-redux'
 import EventForm from '../components/EventForm'
 import EventCard from '../components/EventCard'
 import { eventsAPI } from '../services/api'
+import { setPage } from '../store/uiSlice'
 
-const Events = ({ onBack }) => {
+const Events = () => {
+	const dispatch = useDispatch()
+	const onBack = () => dispatch(setPage('dashboard'))
 	const [events, setEvents] = useState([])
 	const [query, setQuery] = useState('')
 	const [loading, setLoading] = useState(true)

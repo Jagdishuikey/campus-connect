@@ -3,7 +3,7 @@ import Login from './Login'
 import Signup from './Signup'
 import ThemeToggle from './ThemeToggle'
 
-const Auth = ({ onAuth }) => {
+const Auth = () => {
   const [tab, setTab] = useState('login')
 
   return (
@@ -97,9 +97,9 @@ const Auth = ({ onAuth }) => {
               {/* Form */}
               <div className="animate-fade-in" key={tab}>
                 {tab === 'login' ? (
-                  <Login onAuth={onAuth} switchToSignup={() => setTab('signup')} />
+                  <Login switchToSignup={() => setTab('signup')} />
                 ) : (
-                  <Signup onAuth={onAuth} switchToLogin={() => setTab('login')} />
+                  <Signup switchToLogin={() => setTab('login')} />
                 )}
               </div>
             </div>

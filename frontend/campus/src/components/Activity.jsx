@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
+import { useSelector } from 'react-redux'
 import { postsAPI } from '../services/api'
 import { getSocket } from '../services/socket'
 
@@ -15,47 +16,91 @@ function timeAgo(dateStr) {
 }
 
 /* ── Single activity card ── */
-const ActivityItem = ({ a, currentUserId, onDelete }) => (
-  <div className="glass-card animate-fade-in" style={{ display: 'flex', gap: '1rem', padding: '1rem' }}>
-    <div className="avatar avatar-md">{a.avatar}</div>
-    <div style={{ flex: 1, minWidth: 0 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
-        <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-primary)' }}>{a.authorName}</span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexShrink: 0 }}>
-          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{timeAgo(a.createdAt)}</span>
-          {(a.author === currentUserId) && (
-            <button
-              onClick={() => { if (window.confirm('Delete this post?')) onDelete(a._id) }}
-              className="btn-ghost btn-danger"
-              aria-label={`Delete post ${a._id}`}
-              style={{ padding: '0.25rem 0.6rem', fontSize: '0.7rem' }}
-            >Delete</button>
-          )}
+const ActivityItem = ({ a, currentUserId, onDelete, onLike }) => {
+  const liked = (a.likes || []).includes(currentUserId)
+  const likeCount = (a.likes || []).length
+
+  return (
+    <div className="glass-card animate-fade-in" style={{ display: 'flex', gap: '1rem', padding: '1rem' }}>
+      <div className="avatar avatar-md">{a.avatar}</div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
+          <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-primary)' }}>{a.authorName}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexShrink: 0 }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{timeAgo(a.createdAt)}</span>
+            {(a.author === currentUserId) && (
+              <button
+                onClick={() => { if (window.confirm('Delete this post?')) onDelete(a._id) }}
+                className="btn-ghost btn-danger"
+                aria-label={`Delete post ${a._id}`}
+                style={{ padding: '0.25rem 0.6rem', fontSize: '0.7rem' }}
+              >Delete</button>
+            )}
+          </div>
+        </div>
+        {a.text && <p style={{ margin: '0.4rem 0 0', fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{a.text}</p>}
+        {a.image && (
+          <img
+            src={a.image}
+            alt="Post attachment"
+            style={{
+              marginTop: '0.6rem',
+              maxWidth: '100%',
+              maxHeight: 300,
+              borderRadius: 'var(--radius-md)',
+              objectFit: 'cover',
+              cursor: 'pointer',
+              border: '1px solid var(--glass-border)',
+            }}
+            onClick={() => window.open(a.image, '_blank')}
+          />
+        )}
+        {/* Like count */}
+        {likeCount > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.5rem', paddingBottom: '0.4rem', borderBottom: '1px solid var(--glass-border)' }}>
+            <span style={{ width: 18, height: 18, borderRadius: '50%', background: 'linear-gradient(180deg, #18acfe, #0163e0)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem' }}>👍</span>
+            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{likeCount}</span>
+          </div>
+        )}
+        {/* Action bar */}
+        <div style={{ display: 'flex', alignItems: 'center', marginTop: likeCount > 0 ? '0.25rem' : '0.5rem', borderTop: likeCount > 0 ? 'none' : '1px solid var(--glass-border)', paddingTop: '0.35rem' }}>
+          <button
+            onClick={() => onLike(a._id)}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              padding: '0.4rem 0.75rem',
+              borderRadius: 'var(--radius-md)',
+              transition: 'all 0.2s ease',
+              color: liked ? '#0866ff' : 'var(--text-muted)',
+              fontSize: '0.85rem',
+              fontWeight: liked ? 700 : 600,
+            }}
+            title={liked ? 'Unlike' : 'Like'}
+          >
+            <span style={{
+              fontSize: '1.05rem',
+              transition: 'transform 0.25s ease',
+              transform: liked ? 'scale(1.15)' : 'scale(1)',
+              display: 'inline-block',
+            }}>
+              👍
+            </span>
+            <span>Like</span>
+          </button>
         </div>
       </div>
-      {a.text && <p style={{ margin: '0.4rem 0 0', fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{a.text}</p>}
-      {a.image && (
-        <img
-          src={a.image}
-          alt="Post attachment"
-          style={{
-            marginTop: '0.6rem',
-            maxWidth: '100%',
-            maxHeight: 300,
-            borderRadius: 'var(--radius-md)',
-            objectFit: 'cover',
-            cursor: 'pointer',
-            border: '1px solid var(--glass-border)',
-          }}
-          onClick={() => window.open(a.image, '_blank')}
-        />
-      )}
     </div>
-  </div>
-)
+  )
+}
 
 /* ── Main Activity feed ── */
-const Activity = ({ user }) => {
+const Activity = () => {
+  const user = useSelector(state => state.auth.user)
   const [items, setItems] = useState([])
   const [newText, setNewText] = useState('')
   const [posting, setPosting] = useState(false)
@@ -87,12 +132,18 @@ const Activity = ({ user }) => {
       setItems(prev => prev.filter(p => p._id !== postId))
     }
 
+    const handlePostLiked = ({ postId, likes }) => {
+      setItems(prev => prev.map(p => p._id === postId ? { ...p, likes } : p))
+    }
+
     socket.on('new_post', handleNewPost)
     socket.on('delete_post', handleDeletePost)
+    socket.on('post_liked', handlePostLiked)
 
     return () => {
       socket.off('new_post', handleNewPost)
       socket.off('delete_post', handleDeletePost)
+      socket.off('post_liked', handlePostLiked)
     }
   }, [])
 
@@ -150,6 +201,28 @@ const Activity = ({ user }) => {
       alert('Could not delete post.')
     }
   }, [])
+
+  /* Like / unlike a post */
+  const like = useCallback(async (id) => {
+    // Optimistic update
+    setItems(prev => prev.map(p => {
+      if (p._id !== id) return p
+      const likes = [...(p.likes || [])]
+      const idx = likes.indexOf(currentUserId)
+      if (idx === -1) likes.push(currentUserId)
+      else likes.splice(idx, 1)
+      return { ...p, likes }
+    }))
+    try {
+      await postsAPI.like(id)
+    } catch (err) {
+      console.error('Failed to like post:', err)
+      // Revert on failure
+      postsAPI.getAll()
+        .then(data => setItems(data.posts || []))
+        .catch(() => {})
+    }
+  }, [currentUserId])
 
   return (
     <div>
@@ -230,7 +303,7 @@ const Activity = ({ user }) => {
           </p>
         )}
         {items.map(a => (
-          <ActivityItem key={a._id} a={a} currentUserId={currentUserId} onDelete={remove} />
+          <ActivityItem key={a._id} a={a} currentUserId={currentUserId} onDelete={remove} onLike={like} />
         ))}
       </div>
     </div>
