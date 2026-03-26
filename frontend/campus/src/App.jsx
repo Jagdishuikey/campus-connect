@@ -11,6 +11,7 @@ import Groups from './pages/Groups'
 import Connection from './pages/Connection'
 import LostFound from './pages/LostFound'
 import ProfilePage from './pages/ProfilePage'
+import Hostels from './pages/Hostels'
 import { connectSocket, getSocket } from './services/socket'
 
 function App() {
@@ -102,6 +103,7 @@ function App() {
       {page === 'connections' && <Connection />}
       {page === 'lostfound' && <LostFound />}
       {page === 'profile' && <ProfilePage />}
+      {page === 'hostels' && <Hostels />}
     </ThemeProvider>
   )
 }

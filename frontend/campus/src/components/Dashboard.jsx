@@ -10,6 +10,7 @@ const features = [
   { icon: '👥', title: 'Groups', desc: 'Join clubs and student groups nearby.', page: 'groups', gradient: 'linear-gradient(135deg,rgba(249,115,22,0.15),rgba(236,72,153,0.1))' },
   { icon: '🔗', title: 'Connections', desc: 'Find classmates and form study groups.', page: 'connections', gradient: 'linear-gradient(135deg,rgba(52,211,153,0.15),rgba(6,182,212,0.1))' },
   { icon: '🔍', title: 'Lost & Found', desc: 'Report lost items or help reunite found ones.', page: 'lostfound', gradient: 'linear-gradient(135deg,rgba(251,191,36,0.15),rgba(251,113,133,0.1))' },
+  { icon: '🏠', title: 'PG/Hostels', desc: 'Find nearby PGs and hostels on a map.', page: 'hostels', gradient: 'linear-gradient(135deg,rgba(34,211,238,0.15),rgba(139,92,246,0.1))' },
 ]
 
 const FeatureCard = ({ f, onClick }) => (

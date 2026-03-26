@@ -338,3 +338,13 @@ export const postsAPI = {
     return data;
   },
 };
+
+// PG/Hostels API
+export const pgAPI = {
+  getAll: async () => {
+    const res = await fetchWithAuth(`${API_BASE_URL}/pgs`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to fetch PGs');
+    return data;
+  },
+};
