@@ -1,8 +1,15 @@
 import React, { useState } from 'react'
+import { useSelector, useDispatch } from 'react-redux'
 import ThemeToggle from '../components/ThemeToggle'
 import { authAPI } from '../services/api'
+import { updateUser, clearUser } from '../store/authSlice'
+import { setPage } from '../store/uiSlice'
 
-const ProfilePage = ({ user, onBack, onSignOut, onUpdateUser }) => {
+const ProfilePage = () => {
+    const user = useSelector(state => state.auth.user)
+    const dispatch = useDispatch()
+    const onBack = () => dispatch(setPage('dashboard'))
+    const onSignOut = () => dispatch(clearUser())
     const [activeTab, setActiveTab] = useState('about')
     const [isEditing, setIsEditing] = useState(false)
     const [editForm, setEditForm] = useState({
@@ -109,7 +116,7 @@ const ProfilePage = ({ user, onBack, onSignOut, onUpdateUser }) => {
             if (response.success && response.user) {
                 // Merge updates into existing user to preserve fields like joinedGroups
                 const updatedUser = { ...user, ...response.user }
-                onUpdateUser(updatedUser)
+                dispatch(updateUser(response.user))
                 setSaveSuccess(true)
                 setTimeout(() => {
                     closeEditModal()

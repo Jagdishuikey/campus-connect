@@ -1,12 +1,16 @@
 import React from 'react'
+import { useSelector, useDispatch } from 'react-redux'
 import Activity from './Activity'
 import ThemeToggle from './ThemeToggle'
+import { clearUser } from '../store/authSlice'
+import { setPage } from '../store/uiSlice'
 
 const features = [
   { icon: '📅', title: 'Events', desc: 'See upcoming campus events and RSVP.', page: 'events', gradient: 'linear-gradient(135deg,rgba(139,92,246,0.15),rgba(6,182,212,0.1))' },
   { icon: '👥', title: 'Groups', desc: 'Join clubs and student groups nearby.', page: 'groups', gradient: 'linear-gradient(135deg,rgba(249,115,22,0.15),rgba(236,72,153,0.1))' },
   { icon: '🔗', title: 'Connections', desc: 'Find classmates and form study groups.', page: 'connections', gradient: 'linear-gradient(135deg,rgba(52,211,153,0.15),rgba(6,182,212,0.1))' },
   { icon: '🔍', title: 'Lost & Found', desc: 'Report lost items or help reunite found ones.', page: 'lostfound', gradient: 'linear-gradient(135deg,rgba(251,191,36,0.15),rgba(251,113,133,0.1))' },
+  { icon: '🏠', title: 'PG/Hostels', desc: 'Find nearby PGs and hostels on a map.', page: 'hostels', gradient: 'linear-gradient(135deg,rgba(34,211,238,0.15),rgba(139,92,246,0.1))' },
 ]
 
 const FeatureCard = ({ f, onClick }) => (
@@ -32,13 +36,17 @@ const FeatureCard = ({ f, onClick }) => (
   </button>
 )
 
-const Dashboard = ({ user, onSignOut, onNavigate }) => {
+const Dashboard = () => {
+  const user = useSelector(state => state.auth.user)
+  const dispatch = useDispatch()
+  const onNavigate = (p) => dispatch(setPage(p))
+
   return (
     <div className="page-wrapper">
       {/* Header */}
       <header className="dashboard-header">
         <div>
-          <h1 style={{ fontSize: '2rem', fontWeight: 800, margin: 0 }} className="gradient-text">Campus Connect</h1>
+          <h1 onClick={() => onNavigate && onNavigate('dashboard')} style={{ fontSize: '2rem', fontWeight: 800, margin: 0 }} className="gradient-text cursor-pointer">Campus Connect</h1>
           <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', margin: '0.3rem 0 0' }}>
             Welcome back{user?.name ? `, ${user.name}` : user?.email ? `, ${user.email}` : ''}! 👋
           </p>

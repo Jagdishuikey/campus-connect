@@ -9,6 +9,7 @@ import groupRoutes from './routes/groupRoutes.js'
 import lostFoundRoutes from './routes/lostFoundRoutes.js'
 import connectionRoutes from './routes/connectionRoutes.js'
 import postRoutes from './routes/postRoutes.js'
+import pgRoutes from './routes/pgRoutes.js'
 
 import dotenv from "dotenv";
 dotenv.config();
@@ -17,10 +18,16 @@ const PORT = process.env.PORT || 3000
 const app = express()
 const httpServer = createServer(app)
 
+// Allowed origins for CORS
+const allowedOrigins = [
+  process.env.CLIENT_URL || 'https://campus-connect-kohl.vercel.app',
+  'http://localhost:5173',
+]
+
 // Socket.IO setup
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.CLIENT_URL || 'https://campus-connect-kohl.vercel.app',
+    origin: allowedOrigins,
     methods: ['GET', 'POST'],
     credentials: true,
   }
@@ -95,7 +102,14 @@ io.on('connection', (socket) => {
 
 // CORS Middleware - must be before routes
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'https://campus-connect-kohl.vercel.app',
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin) return callback(null, true)
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, origin)
+    }
+    return callback(new Error('Not allowed by CORS'))
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -116,6 +130,7 @@ app.use('/api/groups', groupRoutes)
 app.use('/api/lostfound', lostFoundRoutes)
 app.use('/api/connections', connectionRoutes)
 app.use('/api/posts', postRoutes)
+app.use('/api/pgs', pgRoutes)
 
 // Health check route
 app.get('/api/health', (req, res) => {

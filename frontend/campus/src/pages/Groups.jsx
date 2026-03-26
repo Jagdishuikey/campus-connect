@@ -1,9 +1,14 @@
 import React, { useEffect, useState } from 'react'
+import { useSelector, useDispatch } from 'react-redux'
 import ClubForm from '../components/ClubForm'
 import ClubCard from '../components/ClubCard'
 import { groupsAPI } from '../services/api'
+import { setPage } from '../store/uiSlice'
 
-const Groups = ({ onBack, user }) => {
+const Groups = () => {
+	const user = useSelector(state => state.auth.user)
+	const dispatch = useDispatch()
+	const onBack = () => dispatch(setPage('dashboard'))
 	const [clubs, setClubs] = useState([])
 	const [query, setQuery] = useState('')
 	const [loading, setLoading] = useState(true)

@@ -1,5 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://campus-connect-backend-tau.vercel.app/api';
-
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://campus-connect-backend-tau.vercel.app/api';  
 // API service for authentication
 export const authAPI = {
   signup: async (name, email, password) => {
@@ -328,6 +327,24 @@ export const postsAPI = {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || 'Failed to delete post');
+    return data;
+  },
+  like: async (id) => {
+    const res = await fetchWithAuth(`${API_BASE_URL}/posts/${id}/like`, {
+      method: 'PUT',
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to like post');
+    return data;
+  },
+};
+
+// PG/Hostels API
+export const pgAPI = {
+  getAll: async () => {
+    const res = await fetchWithAuth(`${API_BASE_URL}/pgs`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to fetch PGs');
     return data;
   },
 };

@@ -1,7 +1,10 @@
 import React, { useState } from 'react'
+import { useDispatch } from 'react-redux'
 import { authAPI } from '../services/api'
+import { setUser } from '../store/authSlice'
 
-const Signup = ({ onAuth, switchToLogin }) => {
+const Signup = ({ switchToLogin }) => {
+  const dispatch = useDispatch()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -16,14 +19,8 @@ const Signup = ({ onAuth, switchToLogin }) => {
     try {
       const response = await authAPI.signup(name, email, password)
       
-      // Store token in localStorage
-      localStorage.setItem('token', response.token)
-      
-      // Store user data
-      localStorage.setItem('user', JSON.stringify(response.user))
-      
-      // Call parent handler with user data
-      onAuth && onAuth(response.user)
+      // Dispatch to Redux store (persists to localStorage inside reducer)
+      dispatch(setUser({ user: response.user, token: response.token }))
     } catch (err) {
       setError(err.message)
       console.error('Signup error:', err)

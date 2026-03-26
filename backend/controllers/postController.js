@@ -94,3 +94,36 @@ export const deletePost = async (req, res) => {
     res.status(500).json({ success: false, message: 'Failed to delete post', error: error.message });
   }
 };
+
+// PUT /api/posts/:id/like – toggle like on a post
+export const toggleLike = async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) {
+      return res.status(404).json({ success: false, message: 'Post not found' });
+    }
+
+    const userId = req.user.userId;
+    const index = post.likes.indexOf(userId);
+
+    if (index === -1) {
+      // Like
+      post.likes.push(userId);
+    } else {
+      // Unlike
+      post.likes.splice(index, 1);
+    }
+
+    await post.save();
+
+    // Broadcast like update to all clients
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('post_liked', { postId: post._id, likes: post.likes });
+    }
+
+    res.status(200).json({ success: true, likes: post.likes });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to toggle like', error: error.message });
+  }
+};

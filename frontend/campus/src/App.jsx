@@ -1,5 +1,7 @@
 
-import React, { useState, useEffect } from 'react'
+import React, { useEffect } from 'react'
+import { useSelector, useDispatch } from 'react-redux'
+import toast, { Toaster } from 'react-hot-toast'
 import './App.css'
 import { ThemeProvider } from './components/ThemeContext'
 import Auth from './components/Auth'
@@ -9,31 +11,15 @@ import Groups from './pages/Groups'
 import Connection from './pages/Connection'
 import LostFound from './pages/LostFound'
 import ProfilePage from './pages/ProfilePage'
-import { connectSocket, disconnectSocket } from './services/socket'
+import Hostels from './pages/Hostels'
+import { connectSocket, getSocket } from './services/socket'
 
 function App() {
-  const [user, setUser] = useState(null)
-  const [page, setPage] = useState('dashboard')
-  const [loading, setLoading] = useState(true)
+  const user = useSelector(state => state.auth.user)
+  const page = useSelector(state => state.ui.page)
+  const dispatch = useDispatch()
 
-  // Check for existing token on mount
-  useEffect(() => {
-    const token = localStorage.getItem('token')
-    const savedUser = localStorage.getItem('user')
-
-    if (token && savedUser) {
-      try {
-        setUser(JSON.parse(savedUser))
-      } catch (err) {
-        console.error('Failed to parse user data:', err)
-        localStorage.removeItem('token')
-        localStorage.removeItem('user')
-      }
-    }
-    setLoading(false)
-  }, [])
-
-  // Auto-connect socket when user is already logged in on mount
+  // Auto-connect socket when user is logged in
   useEffect(() => {
     if (user) {
       const userId = user.id || user._id
@@ -41,50 +27,83 @@ function App() {
     }
   }, [user])
 
-  const handleAuth = (u) => {
-    setUser(u)
-    setPage('dashboard')
-    // Connect socket on login
-    const userId = u?.id || u?._id
-    if (userId) connectSocket(userId)
-  }
+  // Global notification listener for incoming messages
+  useEffect(() => {
+    if (!user) return
 
-  const signOut = () => {
-    // Disconnect socket
-    disconnectSocket()
-    // Clear token and user from localStorage
-    localStorage.removeItem('token')
-    localStorage.removeItem('user')
-    setUser(null)
-    setPage('dashboard')
-  }
+    const socket = getSocket()
 
-  if (loading) {
-    return (
-      <ThemeProvider>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: 'var(--bg-base)' }}>
-          <div style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>
-            <p>Loading...</p>
+    const handleIncomingMessage = (message) => {
+      const senderId = message.sender?._id || message.sender
+      const currentUserId = user.id || user._id
+
+      // Don't notify for own messages
+      if (senderId === currentUserId) return
+
+      const senderName = message.senderName || message.sender?.name || 'Someone'
+      const content = message.content
+        ? message.content.length > 50 ? message.content.slice(0, 50) + '…' : message.content
+        : '📷 Sent an image'
+
+      toast(
+        (t) => (
+          <div
+            style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}
+            onClick={() => toast.dismiss(t.id)}
+          >
+            <div style={{
+              width: 40, height: 40, borderRadius: '50%',
+              background: 'linear-gradient(135deg, #8b5cf6, #06b6d4)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: '#fff', fontWeight: 700, fontSize: '0.9rem', flexShrink: 0,
+            }}>
+              {senderName.charAt(0).toUpperCase()}
+            </div>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontWeight: 600, fontSize: '0.88rem', color: '#1a1a2e' }}>{senderName}</div>
+              <div style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 200 }}>{content}</div>
+            </div>
           </div>
-        </div>
-      </ThemeProvider>
-    )
-  }
+        ),
+        {
+          duration: 4000,
+          position: 'top-right',
+          style: {
+            background: '#fff',
+            borderRadius: '12px',
+            padding: '12px 16px',
+            boxShadow: '0 8px 30px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08)',
+            border: '1px solid rgba(139,92,246,0.15)',
+          },
+          icon: '💬',
+        }
+      )
+    }
+
+    socket.on('receive_message', handleIncomingMessage)
+
+    return () => {
+      socket.off('receive_message', handleIncomingMessage)
+    }
+  }, [user])
 
   if (!user) return (
     <ThemeProvider>
-      <Auth onAuth={handleAuth} />
+      <Toaster />
+      <Auth />
     </ThemeProvider>
   )
 
   return (
     <ThemeProvider>
-      {page === 'dashboard' && <Dashboard user={user} onSignOut={signOut} onNavigate={setPage} />}
-      {page === 'events' && <Events onBack={() => setPage('dashboard')} />}
-      {page === 'groups' && <Groups onBack={() => setPage('dashboard')} user={user} />}
-      {page === 'connections' && <Connection onBack={() => setPage('dashboard')} user={user} />}
-      {page === 'lostfound' && <LostFound onBack={() => setPage('dashboard')} />}
-      {page === 'profile' && <ProfilePage user={user} onBack={() => setPage('dashboard')} onSignOut={signOut} onUpdateUser={(updatedUser) => { setUser(updatedUser); localStorage.setItem('user', JSON.stringify(updatedUser)); }} />}
+      <Toaster />
+      {page === 'dashboard' && <Dashboard />}
+      {page === 'events' && <Events />}
+      {page === 'groups' && <Groups />}
+      {page === 'connections' && <Connection />}
+      {page === 'lostfound' && <LostFound />}
+      {page === 'profile' && <ProfilePage />}
+      {page === 'hostels' && <Hostels />}
     </ThemeProvider>
   )
 }

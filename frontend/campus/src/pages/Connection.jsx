@@ -1,8 +1,13 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react'
+import { useSelector, useDispatch } from 'react-redux'
 import { connectionsAPI } from '../services/api'
 import { connectSocket, getSocket } from '../services/socket'
+import { setPage } from '../store/uiSlice'
 
-const Connection = ({ onBack, user }) => {
+const Connection = () => {
+	const user = useSelector(state => state.auth.user)
+	const dispatch = useDispatch()
+	const onBack = () => dispatch(setPage('dashboard'))
 	const [connections, setConnections] = useState([])
 	const [allUsers, setAllUsers] = useState([])
 	const [search, setSearch] = useState('')
@@ -191,7 +196,7 @@ const Connection = ({ onBack, user }) => {
 			// Emit via socket for real-time delivery
 			const socket = getSocket()
 			if (socket?.connected) {
-				socket.emit('send_message', { recipientId: chatUser._id, message: data.message })
+				socket.emit('send_message', { recipientId: chatUser._id, message: { ...data.message, senderName: user?.name || 'Someone' } })
 				socket.emit('stop_typing', { recipientId: chatUser._id, senderId: currentUserId })
 			}
 			setMsgInput('')
