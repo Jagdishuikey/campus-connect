@@ -40,20 +40,21 @@ const ActivityItem = ({ a, currentUserId, onDelete, onLike }) => {
         </div>
         {a.text && <p style={{ margin: '0.4rem 0 0', fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{a.text}</p>}
         {a.image && (
-          <img
-            src={a.image}
-            alt="Post attachment"
-            style={{
-              marginTop: '0.6rem',
-              maxWidth: '100%',
-              maxHeight: 300,
-              borderRadius: 'var(--radius-md)',
-              objectFit: 'cover',
-              cursor: 'pointer',
-              border: '1px solid var(--glass-border)',
-            }}
-            onClick={() => window.open(a.image, '_blank')}
-          />
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '0.6rem' }}>
+            <img
+              src={a.image}
+              alt="Post attachment"
+              style={{
+                maxWidth: '100%',
+                maxHeight: 300,
+                borderRadius: 'var(--radius-md)',
+                objectFit: 'cover',
+                cursor: 'pointer',
+                border: '1px solid var(--glass-border)',
+              }}
+              onClick={() => window.open(a.image, '_blank')}
+            />
+          </div>
         )}
         {/* Like count */}
         {likeCount > 0 && (

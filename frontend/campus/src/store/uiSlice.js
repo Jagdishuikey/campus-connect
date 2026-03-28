@@ -1,13 +1,16 @@
 import { createSlice } from '@reduxjs/toolkit'
 
+const savedPage = localStorage.getItem('currentPage') || 'dashboard'
+
 const uiSlice = createSlice({
   name: 'ui',
   initialState: {
-    page: 'dashboard',
+    page: savedPage,
   },
   reducers: {
     setPage(state, action) {
       state.page = action.payload
+      localStorage.setItem('currentPage', action.payload)
     },
   },
 })
