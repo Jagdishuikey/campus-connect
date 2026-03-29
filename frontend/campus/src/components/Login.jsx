@@ -7,6 +7,7 @@ const Login = ({ switchToSignup }) => {
   const dispatch = useDispatch()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -46,15 +47,39 @@ const Login = ({ switchToSignup }) => {
 
         <div>
           <label className="form-label">Password</label>
-          <input
-            type="password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            required
-            placeholder="••••••••"
-            className="glass-input"
-            disabled={loading}
-          />
+          <div style={{ position: 'relative' }}>
+            <input
+              type={showPassword ? 'text' : 'password'}
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              required
+              placeholder="••••••••"
+              className="glass-input"
+              style={{ width: '100%', paddingRight: '2.5rem' }}
+              disabled={loading}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(prev => !prev)}
+              style={{
+                position: 'absolute',
+                right: '0.75rem',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: 'var(--text-muted)',
+                fontSize: '1rem',
+                padding: 0,
+                lineHeight: 1,
+              }}
+              tabIndex={-1}
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+            >
+              {showPassword ? '🙈' : '👁️'}
+            </button>
+          </div>
         </div>
 
         {error && (
@@ -86,19 +111,6 @@ const Login = ({ switchToSignup }) => {
             disabled={loading}
           >
             Create account →
-          </button>
-        </div>
-
-        {/* Divider */}
-        <div className="divider" style={{ margin: '0.25rem 0' }}>Or continue with</div>
-
-        {/* Social Buttons */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-          <button type="button" className="btn-ghost" style={{ justifyContent: 'center' }}>
-            <span></span> Apple
-          </button>
-          <button type="button" className="btn-ghost" style={{ justifyContent: 'center' }}>
-            <span>G</span> Google
           </button>
         </div>
       </form>

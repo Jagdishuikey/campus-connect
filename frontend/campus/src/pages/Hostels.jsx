@@ -60,7 +60,7 @@ const typeBadge = {
 
 // Gender badge
 const genderBadge = {
-  male: { label: '♂ Boys', color: 'rgba(96,165,250,0.8)' },
+  male: { label: '♂ Boys', color: 'rgba(19, 39, 65, 0.8)' },
   female: { label: '♀ Girls', color: 'rgba(244,114,182,0.8)' },
   unisex: { label: '⚥ Unisex', color: 'rgba(167,139,250,0.8)' },
 }
@@ -89,8 +89,8 @@ const Hostels = () => {
   const [selectedPgId, setSelectedPgId] = useState(null)
   const markerRefs = useRef({})
 
-  // Default center (Indore)
-  const defaultCenter = [22.7196, 75.8577]
+  // Default center (Akurdi, Pune)
+  const defaultCenter = [18.6492, 73.7707]
 
   // Fetch PGs
   useEffect(() => {
@@ -167,7 +167,7 @@ const Hostels = () => {
       </header>
 
       {/* Filters */}
-      <div className="search-filter-row" style={{ position: 'relative', zIndex: 1 }}>
+      <div className="search-filter-row " style={{ position: 'relative', zIndex: 1 }}>
         <input
           type="text"
           className="glass-input"
@@ -188,6 +188,7 @@ const Hostels = () => {
           <option value="flat">Flat</option>
         </select>
         <select
+         
           className="glass-input"
           value={filterGender}
           onChange={(e) => setFilterGender(e.target.value)}
