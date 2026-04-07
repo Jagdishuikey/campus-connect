@@ -89,6 +89,22 @@ export const authAPI = {
     }
     return data;
   },
+
+  googleLogin: async (credential) => {
+    const response = await fetch(`${API_BASE_URL}/auth/google`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ credential }),
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || 'Google login failed');
+    }
+    return data;
+  },
 };
 
 // Generic fetch with authorization

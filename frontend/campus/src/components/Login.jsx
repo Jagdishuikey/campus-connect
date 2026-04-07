@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { useDispatch } from 'react-redux'
+import { GoogleLogin } from '@react-oauth/google'
 import { authAPI } from '../services/api'
 import { setUser } from '../store/authSlice'
 
@@ -18,8 +19,6 @@ const Login = ({ switchToSignup }) => {
 
     try {
       const response = await authAPI.login(email, password)
-      
-      // Dispatch to Redux store (persists to localStorage inside reducer)
       dispatch(setUser({ user: response.user, token: response.token }))
     } catch (err) {
       setError(err.message)
@@ -27,6 +26,24 @@ const Login = ({ switchToSignup }) => {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    setLoading(true)
+    setError('')
+    try {
+      const response = await authAPI.googleLogin(credentialResponse.credential)
+      dispatch(setUser({ user: response.user, token: response.token }))
+    } catch (err) {
+      setError(err.message)
+      console.error('Google login error:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleGoogleError = () => {
+    setError('Google sign-in was cancelled or failed. Please try again.')
   }
 
   return (
@@ -114,6 +131,23 @@ const Login = ({ switchToSignup }) => {
           </button>
         </div>
       </form>
+
+      {/* Divider */}
+      <div className="divider" style={{ margin: '1.5rem 0' }}>or continue with</div>
+
+      {/* Google Sign-In Button */}
+      <div className="google-btn-wrapper">
+        <GoogleLogin
+          onSuccess={handleGoogleSuccess}
+          onError={handleGoogleError}
+          theme="filled_black"
+          shape="pill"
+          size="large"
+          width="100%"
+          text="signin_with"
+          logo_alignment="center"
+        />
+      </div>
     </div>
   )
 }

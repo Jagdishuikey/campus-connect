@@ -1,7 +1,11 @@
 import User from '../models/UserModel.js';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import { OAuth2Client } from 'google-auth-library';
 import { uploadToCloudinary } from '../config/cloudinary.js';
+
+// Google OAuth client
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // Generate JWT Token
 const generateToken = (userId) => {
@@ -9,6 +13,18 @@ const generateToken = (userId) => {
     expiresIn: process.env.JWT_EXPIRE || '7d'
   });
 };
+
+// Helper: build user response object
+const userResponse = (user) => ({
+  id: user._id,
+  name: user.name,
+  email: user.email,
+  bio: user.bio,
+  college: user.college,
+  phone: user.phone,
+  profileImage: user.profileImage,
+  createdAt: user.createdAt,
+});
 
 // Register/Signup
 export const signup = async (req, res) => {
@@ -40,7 +56,8 @@ export const signup = async (req, res) => {
     const user = new User({
       name,
       email,
-      password: hashedPassword
+      password: hashedPassword,
+      authProvider: 'local'
     });
 
     await user.save();
@@ -53,11 +70,7 @@ export const signup = async (req, res) => {
       success: true,
       message: 'User registered successfully',
       token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email
-      }
+      user: userResponse(user)
     });
   } catch (error) {
     console.error('Signup error:', error);
@@ -90,6 +103,14 @@ export const login = async (req, res) => {
       });
     }
 
+    // Guard: if user signed up via Google and has no password
+    if (user.authProvider === 'google' && !user.password) {
+      return res.status(400).json({
+        success: false,
+        message: 'This account uses Google Sign-In. Please use the Google button to log in.'
+      });
+    }
+
     // Compare passwords
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
@@ -107,16 +128,7 @@ export const login = async (req, res) => {
       success: true,
       message: 'Login successful',
       token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        bio: user.bio,
-        college: user.college,
-        phone: user.phone,
-        profileImage: user.profileImage,
-        createdAt: user.createdAt,
-      }
+      user: userResponse(user)
     });
   } catch (error) {
     console.error('Login error:', error);
@@ -124,6 +136,83 @@ export const login = async (req, res) => {
       success: false,
       message: 'Error during login',
       error: error.message
+    });
+  }
+};
+
+// Google OAuth — verify token, find-or-create user, issue JWT
+export const googleAuth = async (req, res) => {
+  try {
+    const { credential } = req.body;
+
+    if (!credential) {
+      return res.status(400).json({
+        success: false,
+        message: 'Google credential is required'
+      });
+    }
+
+    // Verify the Google ID token
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    const { sub: googleId, email, name, picture } = payload;
+
+    // 1. Check if user exists by googleId
+    let user = await User.findOne({ googleId });
+
+    if (!user) {
+      // 2. Check if user exists by email (existing local account)
+      user = await User.findOne({ email });
+
+      if (user) {
+        // Link Google account to existing user
+        user.googleId = googleId;
+        if (!user.authProvider || user.authProvider === 'local') {
+          // Keep as local if they already have a password — they can use both methods
+        }
+        if (!user.profileImage && picture) {
+          user.profileImage = picture;
+        }
+        await user.save();
+      } else {
+        // 3. Create brand new Google user
+        user = new User({
+          name,
+          email,
+          googleId,
+          authProvider: 'google',
+          profileImage: picture || null,
+        });
+        await user.save();
+      }
+    }
+
+    // Generate JWT
+    const token = generateToken(user._id);
+
+    res.status(200).json({
+      success: true,
+      message: 'Google authentication successful',
+      token,
+      user: userResponse(user)
+    });
+  } catch (error) {
+    console.error('Google auth error:', error);
+
+    if (error.message?.includes('Token used too late') || error.message?.includes('Invalid token')) {
+      return res.status(401).json({
+        success: false,
+        message: 'Google token is invalid or expired. Please try again.'
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      message: 'Error during Google authentication'
     });
   }
 };
@@ -141,16 +230,7 @@ export const verifyToken = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        bio: user.bio,
-        college: user.college,
-        phone: user.phone,
-        profileImage: user.profileImage,
-        createdAt: user.createdAt,
-      }
+      user: userResponse(user)
     });
   } catch (error) {
     console.error('Token verification error:', error);
@@ -211,16 +291,7 @@ export const updateProfile = async (req, res) => {
     res.status(200).json({
       success: true,
       message: 'Profile updated successfully',
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        bio: user.bio,
-        college: user.college,
-        phone: user.phone,
-        profileImage: user.profileImage,
-        createdAt: user.createdAt,
-      }
+      user: userResponse(user)
     });
   } catch (error) {
     console.error('Update profile error:', error);

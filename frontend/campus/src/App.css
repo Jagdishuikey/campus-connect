@@ -521,6 +521,28 @@ textarea.glass-input {
   background: var(--glass-border);
 }
 
+/* ---------- Google Auth Button Wrapper ---------- */
+.google-btn-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  border-radius: var(--radius-md);
+  transition: box-shadow var(--transition-base);
+}
+
+.google-btn-wrapper:hover {
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.12);
+}
+
+.google-btn-wrapper > div {
+  width: 100% !important;
+}
+
+.google-btn-wrapper iframe {
+  border-radius: var(--radius-md) !important;
+}
+
 /* ============================================
    RESPONSIVE LAYOUT CLASSES
    ============================================ */

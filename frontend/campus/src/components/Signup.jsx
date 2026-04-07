@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { useDispatch } from 'react-redux'
+import { GoogleLogin } from '@react-oauth/google'
 import { authAPI } from '../services/api'
 import { setUser } from '../store/authSlice'
 
@@ -19,8 +20,6 @@ const Signup = ({ switchToLogin }) => {
 
     try {
       const response = await authAPI.signup(name, email, password)
-      
-      // Dispatch to Redux store (persists to localStorage inside reducer)
       dispatch(setUser({ user: response.user, token: response.token }))
     } catch (err) {
       setError(err.message)
@@ -28,6 +27,24 @@ const Signup = ({ switchToLogin }) => {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    setLoading(true)
+    setError('')
+    try {
+      const response = await authAPI.googleLogin(credentialResponse.credential)
+      dispatch(setUser({ user: response.user, token: response.token }))
+    } catch (err) {
+      setError(err.message)
+      console.error('Google signup error:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleGoogleError = () => {
+    setError('Google sign-up was cancelled or failed. Please try again.')
   }
 
   return (
@@ -127,9 +144,26 @@ const Signup = ({ switchToLogin }) => {
             Sign in →
           </button>
         </div>
-
-        <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0 }}>By creating an account you agree to our terms and privacy policy.</p>
       </form>
+
+      {/* Divider */}
+      <div className="divider" style={{ margin: '1.5rem 0' }}>or sign up with</div>
+
+      {/* Google Sign-Up Button */}
+      <div className="google-btn-wrapper">
+        <GoogleLogin
+          onSuccess={handleGoogleSuccess}
+          onError={handleGoogleError}
+          theme="filled_black"
+          shape="pill"
+          size="large"
+          width="100%"
+          text="signup_with"
+          logo_alignment="center"
+        />
+      </div>
+
+      <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: '1rem 0 0' }}>By creating an account you agree to our terms and privacy policy.</p>
     </div>
   )
 }
