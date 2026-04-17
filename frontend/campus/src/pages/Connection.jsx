@@ -251,20 +251,22 @@ const Connection = () => {
 	return (
 		<div className="page-wrapper">
 			{/* Header */}
-			<header className="page-header page-header-flex">
-				<div>
-					<button onClick={onBack} className="btn-ghost" style={{ marginBottom: '0.75rem', fontSize: '0.8rem' }}>← Back to Dashboard</button>
-					<h1 style={{ fontSize: '2rem', fontWeight: 800, margin: 0 }} className="gradient-text">Connections</h1>
-					<p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '0.3rem 0 0' }}>Find classmates, connect & chat in real-time</p>
-				</div>
-				<div className="lf-stats">
-					<div className="glass-card" style={{ padding: '0.6rem 1.2rem', textAlign: 'center', cursor: 'default' }}>
-						<div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--accent-violet)' }}>{accepted.length}</div>
-						<div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Connected</div>
+			<header className="page-title-section animate-fade-in">
+				<div className="page-title-row">
+					<div>
+						<div className="page-icon">🔗</div>
+						<h1 style={{ fontSize: '2rem', fontWeight: 800, margin: 0 }} className="gradient-text">Connections</h1>
+						<p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '0.3rem 0 0' }}>Find classmates, connect & chat in real-time</p>
 					</div>
-					<div className="glass-card" style={{ padding: '0.6rem 1.2rem', textAlign: 'center', cursor: 'default' }}>
-						<div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--accent-amber)' }}>{pending.length}</div>
-						<div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Requests</div>
+					<div className="lf-stats">
+						<div className="glass-card" style={{ padding: '0.6rem 1.2rem', textAlign: 'center', cursor: 'default' }}>
+							<div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--accent-violet)' }}>{accepted.length}</div>
+							<div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Connected</div>
+						</div>
+						<div className="glass-card" style={{ padding: '0.6rem 1.2rem', textAlign: 'center', cursor: 'default' }}>
+							<div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--accent-amber)' }}>{pending.length}</div>
+							<div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Requests</div>
+						</div>
 					</div>
 				</div>
 			</header>
@@ -307,14 +309,19 @@ const Connection = () => {
 
 						<div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
 							{usersLoading && (
-								<div className="glass-card" style={{ padding: '2rem', textAlign: 'center' }}>
-									<p style={{ color: 'var(--text-muted)', margin: 0 }}>Loading users...</p>
-								</div>
+								<>
+									{[1,2,3].map(i => (
+										<div key={i} className="skeleton-card">
+											<div className="skeleton-row"><div className="skeleton skeleton-circle" /><div style={{flex:1,display:'flex',flexDirection:'column',gap:'0.4rem'}}><div className="skeleton skeleton-line-lg" /><div className="skeleton skeleton-line-sm" /></div></div>
+										</div>
+									))}
+								</>
 							)}
 							{!usersLoading && allUsers.length === 0 && (
-								<div className="glass-card" style={{ padding: '2.5rem', textAlign: 'center' }}>
-									<span style={{ fontSize: '2.5rem', display: 'block', marginBottom: '0.75rem' }}>👤</span>
-									<p style={{ color: 'var(--text-muted)', margin: 0, fontSize: '0.85rem' }}>No users found</p>
+								<div className="glass-card empty-state">
+									<span className="empty-state-icon">👤</span>
+									<h3 className="empty-state-title">No users found</h3>
+									<p className="empty-state-desc">Try a different search term to find classmates.</p>
 								</div>
 							)}
 							{allUsers.map(u => {

@@ -143,7 +143,7 @@ const Login = ({ switchToSignup }) => {
           theme="filled_black"
           shape="pill"
           size="large"
-          width="100%"
+          width={350}
           text="signin_with"
           logo_alignment="center"
         />

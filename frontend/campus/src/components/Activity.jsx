@@ -19,6 +19,15 @@ function timeAgo(dateStr) {
 const ActivityItem = ({ a, currentUserId, onDelete, onLike }) => {
   const liked = (a.likes || []).includes(currentUserId)
   const likeCount = (a.likes || []).length
+  const [bursting, setBursting] = React.useState(false)
+
+  const handleLike = () => {
+    if (!liked) {
+      setBursting(true)
+      setTimeout(() => setBursting(false), 500)
+    }
+    onLike(a._id)
+  }
 
   return (
     <div className="glass-card animate-fade-in" style={{ display: 'flex', gap: '1rem', padding: '1rem' }}>
@@ -66,7 +75,7 @@ const ActivityItem = ({ a, currentUserId, onDelete, onLike }) => {
         {/* Action bar */}
         <div style={{ display: 'flex', alignItems: 'center', marginTop: likeCount > 0 ? '0.25rem' : '0.5rem', borderTop: likeCount > 0 ? 'none' : '1px solid var(--glass-border)', paddingTop: '0.35rem' }}>
           <button
-            onClick={() => onLike(a._id)}
+            onClick={handleLike}
             style={{
               background: 'none',
               border: 'none',
@@ -83,15 +92,15 @@ const ActivityItem = ({ a, currentUserId, onDelete, onLike }) => {
             }}
             title={liked ? 'Unlike' : 'Like'}
           >
-            <span style={{
+            <span className={bursting ? 'like-btn-burst' : ''} style={{
               fontSize: '1.05rem',
               transition: 'transform 0.25s ease',
               transform: liked ? 'scale(1.15)' : 'scale(1)',
               display: 'inline-block',
             }}>
-              👍
+              {liked ? '❤️' : '👍'}
             </span>
-            <span>Like</span>
+            <span>{liked ? 'Liked' : 'Like'}</span>
           </button>
         </div>
       </div>

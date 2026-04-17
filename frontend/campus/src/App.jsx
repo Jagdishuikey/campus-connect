@@ -1,10 +1,11 @@
 
-import React, { useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import toast, { Toaster } from 'react-hot-toast'
 import './App.css'
 import { ThemeProvider } from './components/ThemeContext'
 import Auth from './components/Auth'
+import Sidebar from './components/Sidebar'
 import Dashboard from './components/Dashboard'
 import Events from './pages/Events'
 import Groups from './pages/Groups'
@@ -18,6 +19,7 @@ function App() {
   const user = useSelector(state => state.auth.user)
   const page = useSelector(state => state.ui.page)
   const dispatch = useDispatch()
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
   // Auto-connect socket when user is logged in
   useEffect(() => {
@@ -97,13 +99,18 @@ function App() {
   return (
     <ThemeProvider>
       <Toaster />
-      {page === 'dashboard' && <Dashboard />}
-      {page === 'events' && <Events />}
-      {page === 'groups' && <Groups />}
-      {page === 'connections' && <Connection />}
-      {page === 'lostfound' && <LostFound />}
-      {page === 'profile' && <ProfilePage />}
-      {page === 'hostels' && <Hostels />}
+      <div className={`app-layout ${sidebarCollapsed ? 'has-sidebar-collapsed' : 'has-sidebar'}`}>
+        <Sidebar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(c => !c)} />
+        <div className="app-main" key={page}>
+          {page === 'dashboard' && <Dashboard />}
+          {page === 'events' && <Events />}
+          {page === 'groups' && <Groups />}
+          {page === 'connections' && <Connection />}
+          {page === 'lostfound' && <LostFound />}
+          {page === 'profile' && <ProfilePage />}
+          {page === 'hostels' && <Hostels />}
+        </div>
+      </div>
     </ThemeProvider>
   )
 }

@@ -159,7 +159,9 @@ export const googleAuth = async (req, res) => {
     });
 
     const payload = ticket.getPayload();
-    const { sub: googleId, email, name, picture } = payload;
+    const { sub: googleId, email, picture } = payload;
+    // Google may not always provide 'name'; fallback to email prefix
+    const name = payload.name || payload.given_name || email.split('@')[0];
 
     // 1. Check if user exists by googleId
     let user = await User.findOne({ googleId });
@@ -201,7 +203,8 @@ export const googleAuth = async (req, res) => {
       user: userResponse(user)
     });
   } catch (error) {
-    console.error('Google auth error:', error);
+    console.error('Google auth error:', error.message);
+    console.error('Full error:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
 
     if (error.message?.includes('Token used too late') || error.message?.includes('Invalid token')) {
       return res.status(401).json({

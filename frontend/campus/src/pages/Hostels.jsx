@@ -149,13 +149,11 @@ const Hostels = () => {
   return (
     <div className="page-wrapper">
       {/* Header */}
-      <header className="page-header" style={{ position: 'relative', zIndex: 1 }}>
-        <div className="page-header-flex">
+      <header className="page-title-section animate-fade-in">
+        <div className="page-title-row">
           <div>
-            <button className="btn-ghost" onClick={() => dispatch(setPage('dashboard'))} style={{ marginBottom: '0.75rem' }}>
-              ← Back to Dashboard
-            </button>
-            <h1 className="gradient-text" style={{ fontSize: '2rem', fontWeight: 800, margin: 0 }}>🏠 PG / Hostels Finder</h1>
+            <div className="page-icon">🏘️</div>
+            <h1 className="gradient-text" style={{ fontSize: '2rem', fontWeight: 800, margin: 0 }}>PG / Hostels Finder</h1>
             <p style={{ color: 'var(--text-secondary)', margin: '0.4rem 0 0', fontSize: '0.9rem' }}>
               Find nearby PGs, hostels &amp; flats on the map
             </p>

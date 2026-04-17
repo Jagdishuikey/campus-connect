@@ -137,12 +137,15 @@ const ProfilePage = () => {
             <div className="profile-orb profile-orb-3" />
 
             {/* Header bar */}
-            <header className="dashboard-header">
-                <button onClick={onBack} className="btn-ghost" style={{ gap: '0.5rem' }}>
-                    <span style={{ fontSize: '1.1rem' }}>←</span> Back
-                </button>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <ThemeToggle />
+            <header className="page-title-section animate-fade-in" style={{ marginBottom: '1.5rem' }}>
+                <div className="page-title-row">
+                    <div>
+                        <div className="page-icon">👤</div>
+                        <h1 style={{ fontSize: '2rem', fontWeight: 800, margin: 0 }} className="gradient-text">My Profile</h1>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <ThemeToggle />
+                    </div>
                 </div>
             </header>
 

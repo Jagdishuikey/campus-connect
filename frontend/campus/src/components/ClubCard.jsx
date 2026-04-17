@@ -131,6 +131,13 @@ export default function ClubCard({ club, onDelete, onRate, onJoin, onLeave, user
                 <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: '0.2rem 0 0' }}>
                   {club.maxMembers ? `${memberCount}/${club.maxMembers} spots filled` : 'Open registration'}
                 </p>
+                {club.maxMembers && (
+                  <div className="capacity-bar-wrap">
+                    <div className="progress-track" style={{ marginTop: '0.4rem' }}>
+                      <div className="progress-fill" style={{ width: `${Math.min((memberCount / club.maxMembers) * 100, 100)}%` }} />
+                    </div>
+                  </div>
+                )}
               </div>
               {!showRegForm && (
                 <button onClick={() => setShowRegForm(true)} className="btn-gradient" style={{ fontSize: '0.78rem', padding: '0.4rem 1rem' }}>

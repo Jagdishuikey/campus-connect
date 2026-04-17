@@ -5,9 +5,22 @@ import EventCard from '../components/EventCard'
 import { eventsAPI } from '../services/api'
 import { setPage } from '../store/uiSlice'
 
+const SkeletonCard = () => (
+	<div className="skeleton-card">
+		<div className="skeleton-row">
+			<div className="skeleton skeleton-line-lg" />
+		</div>
+		<div className="skeleton-row" style={{ gap: '0.5rem' }}>
+			<div className="skeleton skeleton-line-sm" style={{ width: '80px' }} />
+			<div className="skeleton skeleton-line-sm" style={{ width: '100px' }} />
+		</div>
+		<div className="skeleton skeleton-line" style={{ width: '90%' }} />
+		<div className="skeleton skeleton-line" style={{ width: '70%' }} />
+	</div>
+)
+
 const Events = () => {
 	const dispatch = useDispatch()
-	const onBack = () => dispatch(setPage('dashboard'))
 	const [events, setEvents] = useState([])
 	const [query, setQuery] = useState('')
 	const [loading, setLoading] = useState(true)
@@ -69,11 +82,16 @@ const Events = () => {
 	return (
 		<div className="page-wrapper">
 			{/* Header */}
-			<header className="page-header page-header-flex">
-				<div>
-					<button onClick={onBack} className="btn-ghost" style={{ marginBottom: '0.75rem', fontSize: '0.8rem' }}>← Back to Dashboard</button>
-					<h1 style={{ fontSize: '2rem', fontWeight: 800, margin: 0 }} className="gradient-text">Events</h1>
-					<p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '0.3rem 0 0' }}>Create events and poll attendees</p>
+			<header className="page-title-section animate-fade-in">
+				<div className="page-title-row">
+					<div>
+						<div className="page-icon">📅</div>
+						<h1 style={{ fontSize: '2rem', fontWeight: 800, margin: 0 }} className="gradient-text">Events</h1>
+						<p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '0.3rem 0 0' }}>Create events and poll attendees</p>
+					</div>
+					<div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+						<span className="badge badge-violet">{events.length} events</span>
+					</div>
 				</div>
 			</header>
 
@@ -106,19 +124,21 @@ const Events = () => {
 								className="glass-input"
 								style={{ width: '60%' }}
 							/>
-							<span className="badge badge-violet">{events.length} events</span>
 						</div>
 
 						<div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
 							{loading && (
-								<div className="glass-card" style={{ padding: '2rem', textAlign: 'center' }}>
-									<p style={{ color: 'var(--text-muted)', margin: 0 }}>Loading events...</p>
-								</div>
+								<>
+									<SkeletonCard />
+									<SkeletonCard />
+									<SkeletonCard />
+								</>
 							)}
 							{!loading && filtered.length === 0 && (
-								<div className="glass-card" style={{ padding: '2rem', textAlign: 'center' }}>
-									<span style={{ fontSize: '2rem', display: 'block', marginBottom: '0.5rem' }}>📅</span>
-									<p style={{ color: 'var(--text-muted)', margin: 0 }}>No events yet — create one using the form.</p>
+								<div className="glass-card empty-state">
+									<span className="empty-state-icon">📅</span>
+									<h3 className="empty-state-title">No events yet</h3>
+									<p className="empty-state-desc">Create your first event using the form on the left to get started.</p>
 								</div>
 							)}
 							{filtered.map(ev => (

@@ -116,21 +116,23 @@ const LostFound = () => {
     return (
         <div className="page-wrapper">
             {/* Header */}
-            <header className="page-header page-header-flex">
-                <div>
-                    <button onClick={onBack} className="btn-ghost" style={{ marginBottom: '0.75rem', fontSize: '0.8rem' }}>← Back to Dashboard</button>
-                    <h1 style={{ fontSize: '2rem', fontWeight: 800, margin: 0 }} className="gradient-text">Lost & Found</h1>
-                    <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '0.3rem 0 0' }}>Report lost items or help reunite found ones</p>
-                </div>
-                {/* Stats */}
-                <div className="lf-stats">
-                    <div className="glass-card" style={{ padding: '0.6rem 1.2rem', textAlign: 'center', cursor: 'default' }}>
-                        <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--accent-rose)' }}>{lostCount}</div>
-                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Lost</div>
+            <header className="page-title-section animate-fade-in">
+                <div className="page-title-row">
+                    <div>
+                        <div className="page-icon">🔍</div>
+                        <h1 style={{ fontSize: '2rem', fontWeight: 800, margin: 0 }} className="gradient-text">Lost & Found</h1>
+                        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '0.3rem 0 0' }}>Report lost items or help reunite found ones</p>
                     </div>
-                    <div className="glass-card" style={{ padding: '0.6rem 1.2rem', textAlign: 'center', cursor: 'default' }}>
-                        <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--accent-emerald)' }}>{foundCount}</div>
-                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Resolved</div>
+                    {/* Stats */}
+                    <div className="lf-stats">
+                        <div className="glass-card" style={{ padding: '0.6rem 1.2rem', textAlign: 'center', cursor: 'default' }}>
+                            <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--accent-rose)' }}>{lostCount}</div>
+                            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Lost</div>
+                        </div>
+                        <div className="glass-card" style={{ padding: '0.6rem 1.2rem', textAlign: 'center', cursor: 'default' }}>
+                            <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--accent-emerald)' }}>{foundCount}</div>
+                            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Resolved</div>
+                        </div>
                     </div>
                 </div>
             </header>
@@ -268,15 +270,24 @@ const LostFound = () => {
                         {/* Items */}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
                             {loading && (
-                                <div className="glass-card" style={{ padding: '2.5rem', textAlign: 'center' }}>
-                                    <p style={{ color: 'var(--text-muted)', margin: 0 }}>Loading items...</p>
-                                </div>
+                                <>
+                                    {[1,2,3].map(i => (
+                                        <div key={i} className="skeleton-card">
+                                            <div className="skeleton-row" style={{ gap: '0.5rem' }}>
+                                                <div className="skeleton skeleton-line-lg" />
+                                                <div className="skeleton skeleton-line-sm" style={{ width: '60px' }} />
+                                            </div>
+                                            <div className="skeleton skeleton-line" style={{ width: '90%' }} />
+                                            <div className="skeleton skeleton-line" style={{ width: '65%' }} />
+                                        </div>
+                                    ))}
+                                </>
                             )}
                             {!loading && filtered.length === 0 && (
-                                <div className="glass-card" style={{ padding: '2.5rem', textAlign: 'center' }}>
-                                    <span style={{ fontSize: '3rem', display: 'block', marginBottom: '0.75rem', animation: 'float 3s ease-in-out infinite' }}>🔍</span>
-                                    <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 0.4rem' }}>No items posted yet</h3>
-                                    <p style={{ color: 'var(--text-muted)', margin: 0, fontSize: '0.85rem' }}>Report a lost or found item using the form.</p>
+                                <div className="glass-card empty-state">
+                                    <span className="empty-state-icon">🔍</span>
+                                    <h3 className="empty-state-title">No items posted yet</h3>
+                                    <p className="empty-state-desc">Report a lost or found item using the form to help your campus community.</p>
                                 </div>
                             )}
 

@@ -5,10 +5,24 @@ import ClubCard from '../components/ClubCard'
 import { groupsAPI } from '../services/api'
 import { setPage } from '../store/uiSlice'
 
+const SkeletonCard = () => (
+	<div className="skeleton-card">
+		<div className="skeleton-row">
+			<div className="skeleton skeleton-line-lg" />
+		</div>
+		<div className="skeleton-row" style={{ gap: '0.5rem' }}>
+			<div className="skeleton skeleton-line-sm" style={{ width: '70px' }} />
+			<div className="skeleton skeleton-line-sm" style={{ width: '90px' }} />
+		</div>
+		<div className="skeleton skeleton-line" style={{ width: '95%' }} />
+		<div className="skeleton skeleton-line" style={{ width: '60%' }} />
+		<div className="skeleton skeleton-line" style={{ width: '80%' }} />
+	</div>
+)
+
 const Groups = () => {
 	const user = useSelector(state => state.auth.user)
 	const dispatch = useDispatch()
-	const onBack = () => dispatch(setPage('dashboard'))
 	const [clubs, setClubs] = useState([])
 	const [query, setQuery] = useState('')
 	const [loading, setLoading] = useState(true)
@@ -90,11 +104,16 @@ const Groups = () => {
 	return (
 		<div className="page-wrapper">
 			{/* Header */}
-			<header className="page-header page-header-flex">
-				<div>
-					<button onClick={onBack} className="btn-ghost" style={{ marginBottom: '0.75rem', fontSize: '0.8rem' }}>← Back to Dashboard</button>
-					<h1 style={{ fontSize: '2rem', fontWeight: 800, margin: 0 }} className="gradient-text">Groups</h1>
-					<p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '0.3rem 0 0' }}>Student clubs and communities</p>
+			<header className="page-title-section animate-fade-in">
+				<div className="page-title-row">
+					<div>
+						<div className="page-icon">👥</div>
+						<h1 style={{ fontSize: '2rem', fontWeight: 800, margin: 0 }} className="gradient-text">Groups</h1>
+						<p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '0.3rem 0 0' }}>Student clubs and communities</p>
+					</div>
+					<div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+						<span className="badge badge-cyan">{clubs.length} clubs</span>
+					</div>
 				</div>
 			</header>
 
@@ -121,19 +140,20 @@ const Groups = () => {
 					<div>
 						<div className="search-filter-row">
 							<input value={query} onChange={e => setQuery(e.target.value)} placeholder="🔍 Search clubs or category..." className="glass-input" style={{ width: '60%' }} />
-							<span className="badge badge-cyan">{clubs.length} clubs</span>
 						</div>
 
 						<div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
 							{loading && (
-								<div className="glass-card" style={{ padding: '2rem', textAlign: 'center' }}>
-									<p style={{ color: 'var(--text-muted)', margin: 0 }}>Loading groups...</p>
-								</div>
+								<>
+									<SkeletonCard />
+									<SkeletonCard />
+								</>
 							)}
 							{!loading && filtered.length === 0 && (
-								<div className="glass-card" style={{ padding: '2rem', textAlign: 'center' }}>
-									<span style={{ fontSize: '2rem', display: 'block', marginBottom: '0.5rem' }}>👥</span>
-									<p style={{ color: 'var(--text-muted)', margin: 0 }}>No clubs yet — add one using the form.</p>
+								<div className="glass-card empty-state">
+									<span className="empty-state-icon">👥</span>
+									<h3 className="empty-state-title">No clubs yet</h3>
+									<p className="empty-state-desc">Start a new club using the form on the left and invite your classmates!</p>
 								</div>
 							)}
 							{filtered.map(club => (
