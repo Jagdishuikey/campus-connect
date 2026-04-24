@@ -9,6 +9,7 @@ const navItems = [
   { id: 'events', icon: '📅', label: 'Events' },
   { id: 'groups', icon: '👥', label: 'Groups' },
   { id: 'connections', icon: '🔗', label: 'Connections' },
+  { id: 'chat', icon: '💬', label: 'Chat' },
   { id: 'lostfound', icon: '🔍', label: 'Lost & Found' },
   { id: 'hostels', icon: '🏘️', label: 'PG/Hostels' },
 ]

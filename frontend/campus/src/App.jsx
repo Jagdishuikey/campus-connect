@@ -106,6 +106,7 @@ function App() {
           {page === 'events' && <Events />}
           {page === 'groups' && <Groups />}
           {page === 'connections' && <Connection />}
+          {page === 'chat' && <Connection initialTab="connections" />}
           {page === 'lostfound' && <LostFound />}
           {page === 'profile' && <ProfilePage />}
           {page === 'hostels' && <Hostels />}

@@ -4,7 +4,7 @@ import { connectionsAPI } from '../services/api'
 import { connectSocket, getSocket } from '../services/socket'
 import { setPage } from '../store/uiSlice'
 
-const Connection = () => {
+const Connection = ({ initialTab = 'people' }) => {
 	const user = useSelector(state => state.auth.user)
 	const dispatch = useDispatch()
 	const onBack = () => dispatch(setPage('dashboard'))
@@ -14,7 +14,7 @@ const Connection = () => {
 	const [loading, setLoading] = useState(true)
 	const [usersLoading, setUsersLoading] = useState(true)
 	const [error, setError] = useState('')
-	const [tab, setTab] = useState('people') // people | connections | chat
+	const [tab, setTab] = useState(initialTab) // people | connections | chat
 	const [chatUser, setChatUser] = useState(null)
 	const [messages, setMessages] = useState([])
 	const [msgInput, setMsgInput] = useState('')
