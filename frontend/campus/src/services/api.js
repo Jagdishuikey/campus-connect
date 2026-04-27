@@ -127,6 +127,17 @@ export const fetchWithAuth = async (url, options = {}) => {
     headers,
   });
 
+  // Handle expired or invalid token — force re-login
+  if (response.status === 401) {
+    const data = await response.clone().json().catch(() => ({}));
+    if (data.message === 'Token has expired' || data.message === 'Invalid token' || data.message === 'No token provided, authorization denied') {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.reload();
+      return response;
+    }
+  }
+
   return response;
 };
 
