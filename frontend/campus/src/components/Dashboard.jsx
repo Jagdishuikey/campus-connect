@@ -57,18 +57,51 @@ const Dashboard = () => {
 
         {/* ─── Hero Section ─── */}
         <section className="dashboard-hero animate-fade-in">
-          <div className="dashboard-hero-content">
-            <h1 className="dashboard-greeting">
-              {greeting.text},{' '}
-              <span className="dashboard-greeting-name">
-                {user?.name || user?.email || 'there'}! {greeting.emoji}
-              </span>
-            </h1>
-            <p className="dashboard-subtitle">
-              Here's what's happening on your campus today.
-            </p>
-            <div className="dashboard-time-badge">
-              🗓️ {getFormattedDate()}
+          <div className="dashboard-hero-content" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+            {/* Profile Avatar */}
+            <div className="dashboard-avatar" style={{
+              width: '72px',
+              height: '72px',
+              minWidth: '72px',
+              borderRadius: '50%',
+              background: user?.profileImage
+                ? 'none'
+                : 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary, #06b6d4))',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '1.75rem',
+              fontWeight: 700,
+              color: '#fff',
+              overflow: 'hidden',
+              border: '3px solid rgba(139, 92, 246, 0.4)',
+              boxShadow: '0 0 20px rgba(139, 92, 246, 0.25)',
+            }}>
+              {user?.profileImage ? (
+                <img
+                  src={user.profileImage}
+                  alt={user.name || 'Profile'}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              ) : (
+                (user?.name?.[0] || user?.email?.[0] || '?').toUpperCase()
+              )}
+            </div>
+
+            {/* Greeting text */}
+            <div>
+              <h1 className="dashboard-greeting">
+                {greeting.text},{' '}
+                <span className="dashboard-greeting-name">
+                  {user?.name || user?.email || 'there'}! {greeting.emoji}
+                </span>
+              </h1>
+              <p className="dashboard-subtitle">
+                Here's what's happening on your campus today.
+              </p>
+              <div className="dashboard-time-badge">
+                🗓️ {getFormattedDate()}
+              </div>
             </div>
           </div>
         </section>
