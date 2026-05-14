@@ -248,6 +248,24 @@ const Connection = ({ initialTab = 'people' }) => {
 		}} title={isOnline(userId) ? 'Online' : 'Offline'} />
 	)
 
+	// User avatar with profile image or initials fallback
+	const UserAvatar = ({ user: u, size = 36 }) => (
+		<div style={{
+			width: size, height: size, minWidth: size, borderRadius: '50%',
+			background: u?.profileImage ? 'none' : 'var(--gradient-primary)',
+			display: 'flex', alignItems: 'center', justifyContent: 'center',
+			color: '#fff', fontWeight: 700, fontSize: size * 0.4,
+			overflow: 'hidden', flexShrink: 0,
+			border: '2px solid rgba(139,92,246,0.3)',
+		}}>
+			{u?.profileImage ? (
+				<img src={u.profileImage} alt={u.name || 'User'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+			) : (
+				(u?.name?.[0] || u?.email?.[0] || '?').toUpperCase()
+			)}
+		</div>
+	)
+
 	return (
 		<div className="page-wrapper">
 			{/* Header */}
@@ -334,6 +352,7 @@ const Connection = ({ initialTab = 'people' }) => {
 										<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
 											<div style={{ flex: 1, minWidth: 200 }}>
 												<div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+													<UserAvatar user={u} size={36} />
 													<OnlineDot userId={u._id} />
 													<h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>{u.name}</h3>
 													{status && <span className="badge" style={{ background: status.bg, color: status.color, fontSize: '0.65rem' }}>{status.text}</span>}
@@ -388,6 +407,7 @@ const Connection = ({ initialTab = 'people' }) => {
 											<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
 												<div>
 													<div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+														<UserAvatar user={c.requester} size={34} />
 														<OnlineDot userId={c.requester?._id} />
 														<h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>{c.requester?.name}</h3>
 													</div>
@@ -416,6 +436,7 @@ const Connection = ({ initialTab = 'people' }) => {
 											<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
 												<div>
 													<div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+														<UserAvatar user={c.recipient} size={34} />
 														<OnlineDot userId={c.recipient?._id} />
 														<h3 style={{ fontSize: '1rem', fontWeight: 600, margin: 0, color: 'var(--text-primary)' }}>{c.recipient?.name}</h3>
 													</div>
@@ -440,6 +461,7 @@ const Connection = ({ initialTab = 'people' }) => {
 												<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
 													<div>
 														<div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+															<UserAvatar user={other} size={36} />
 															<OnlineDot userId={other?._id} />
 															<h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>{other?.name}</h3>
 															{isOnline(other?._id) && <span style={{ fontSize: '0.65rem', color: '#22c55e', fontWeight: 600 }}>Online</span>}
@@ -479,9 +501,7 @@ const Connection = ({ initialTab = 'people' }) => {
 						<div className="glass-card" style={{ padding: '1rem 1.5rem', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
 							<div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
 								<div style={{ position: 'relative' }}>
-									<div style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--gradient-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: '1rem' }}>
-										{chatUser.name?.charAt(0)?.toUpperCase() || '?'}
-									</div>
+									<UserAvatar user={chatUser} size={40} />
 									<span style={{
 										position: 'absolute', bottom: 0, right: 0,
 										width: 12, height: 12, borderRadius: '50%',

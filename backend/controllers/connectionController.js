@@ -17,7 +17,7 @@ export const getUsers = async (req, res) => {
             ];
         }
 
-        const users = await User.find(query).select('name email college bio phone').limit(50);
+        const users = await User.find(query).select('name email college bio phone profileImage').limit(50);
 
         // Get all connections for this user
         const connections = await Connection.find({
@@ -105,8 +105,8 @@ export const getConnections = async (req, res) => {
             ]
         })
             .sort({ createdAt: -1 })
-            .populate('requester', 'name email college bio phone')
-            .populate('recipient', 'name email college bio phone');
+            .populate('requester', 'name email college bio phone profileImage')
+            .populate('recipient', 'name email college bio phone profileImage');
 
         res.status(200).json({ success: true, connections });
     } catch (error) {
@@ -138,8 +138,8 @@ export const updateConnection = async (req, res) => {
         await connection.save();
 
         const updated = await Connection.findById(connection._id)
-            .populate('requester', 'name email college bio phone')
-            .populate('recipient', 'name email college bio phone');
+            .populate('requester', 'name email college bio phone profileImage')
+            .populate('recipient', 'name email college bio phone profileImage');
 
         res.status(200).json({ success: true, message: `Connection ${status}`, connection: updated });
     } catch (error) {
@@ -186,8 +186,8 @@ export const sendMessage = async (req, res) => {
         await message.save();
 
         const populated = await Message.findById(message._id)
-            .populate('sender', 'name email')
-            .populate('recipient', 'name email');
+            .populate('sender', 'name email profileImage')
+            .populate('recipient', 'name email profileImage');
 
         res.status(201).json({ success: true, message: populated });
     } catch (error) {
@@ -208,8 +208,8 @@ export const getMessages = async (req, res) => {
             ]
         })
             .sort({ createdAt: 1 })
-            .populate('sender', 'name email')
-            .populate('recipient', 'name email');
+            .populate('sender', 'name email profileImage')
+            .populate('recipient', 'name email profileImage');
 
         // Mark received messages as read
         await Message.updateMany(
