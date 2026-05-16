@@ -348,7 +348,7 @@ const Connection = ({ initialTab = 'people' }) => {
 								const canConnect = !u.connectionStatus
 								const isPendingReceived = u.connectionStatus === 'pending' && !u.isRequester
 								return (
-									<article key={u._id} className="glass-card animate-fade-in" style={{ padding: '1.25rem 1.5rem' }}>
+									<article key={u._id} className="glass-card animate-fade-in" style={{ padding: '1.25rem 1.5rem', cursor: isConnected ? 'pointer' : 'default', transition: 'transform 0.15s, box-shadow 0.15s' }} onClick={() => isConnected && openChat(u)} onMouseEnter={e => { if (isConnected) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 24px rgba(139,92,246,0.15)' }}} onMouseLeave={e => { if (isConnected) { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '' }}}>
 										<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
 											<div style={{ flex: 1, minWidth: 200 }}>
 												<div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
@@ -365,18 +365,18 @@ const Connection = ({ initialTab = 'people' }) => {
 											</div>
 											<div style={{ display: 'flex', gap: '0.4rem', flexShrink: 0 }}>
 												{canConnect && (
-													<button onClick={() => sendRequest(u._id)} className="btn-gradient" style={{ fontSize: '0.78rem', padding: '0.4rem 1rem' }}>
+													<button onClick={(e) => { e.stopPropagation(); sendRequest(u._id) }} className="btn-gradient" style={{ fontSize: '0.78rem', padding: '0.4rem 1rem' }}>
 														🔗 Connect
 													</button>
 												)}
 												{isPendingReceived && (
 													<>
-														<button onClick={() => updateConnection(u.connectionId, 'accepted')} className="btn-gradient" style={{ fontSize: '0.78rem', padding: '0.4rem 0.8rem' }}>Accept</button>
-														<button onClick={() => updateConnection(u.connectionId, 'rejected')} className="btn-ghost btn-danger" style={{ fontSize: '0.78rem', padding: '0.4rem 0.8rem' }}>Decline</button>
+														<button onClick={(e) => { e.stopPropagation(); updateConnection(u.connectionId, 'accepted') }} className="btn-gradient" style={{ fontSize: '0.78rem', padding: '0.4rem 0.8rem' }}>Accept</button>
+														<button onClick={(e) => { e.stopPropagation(); updateConnection(u.connectionId, 'rejected') }} className="btn-ghost btn-danger" style={{ fontSize: '0.78rem', padding: '0.4rem 0.8rem' }}>Decline</button>
 													</>
 												)}
 												{isConnected && (
-													<button onClick={() => openChat(u)} className="btn-gradient" style={{ fontSize: '0.78rem', padding: '0.4rem 1rem', background: 'linear-gradient(135deg,#06b6d4,#8b5cf6)' }}>
+													<button onClick={(e) => { e.stopPropagation(); openChat(u) }} className="btn-gradient" style={{ fontSize: '0.78rem', padding: '0.4rem 1rem', background: 'linear-gradient(135deg,#06b6d4,#8b5cf6)' }}>
 														💬 Chat
 													</button>
 												)}
@@ -457,7 +457,7 @@ const Connection = ({ initialTab = 'people' }) => {
 									{accepted.map(c => {
 										const other = c.requester?._id === currentUserId ? c.recipient : c.requester
 										return (
-											<article key={c._id} className="glass-card animate-fade-in" style={{ padding: '1rem 1.5rem', borderLeft: '3px solid', borderImage: 'linear-gradient(135deg,#34d399,#06b6d4) 1' }}>
+											<article key={c._id} className="glass-card animate-fade-in" style={{ padding: '1rem 1.5rem', borderLeft: '3px solid', borderImage: 'linear-gradient(135deg,#34d399,#06b6d4) 1', cursor: 'pointer', transition: 'transform 0.15s, box-shadow 0.15s' }} onClick={() => openChat(other)} onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 24px rgba(139,92,246,0.15)' }} onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '' }}>
 												<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
 													<div>
 														<div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -471,7 +471,7 @@ const Connection = ({ initialTab = 'people' }) => {
 															{other?.college && <span className="badge badge-glass">🏫 {other.college}</span>}
 														</div>
 													</div>
-													<button onClick={() => openChat(other)} className="btn-gradient" style={{ fontSize: '0.78rem', padding: '0.4rem 1rem', flexShrink: 0, background: 'linear-gradient(135deg,#06b6d4,#8b5cf6)' }}>
+													<button onClick={(e) => { e.stopPropagation(); openChat(other) }} className="btn-gradient" style={{ fontSize: '0.78rem', padding: '0.4rem 1rem', flexShrink: 0, background: 'linear-gradient(135deg,#06b6d4,#8b5cf6)' }}>
 														💬 Chat
 													</button>
 												</div>
